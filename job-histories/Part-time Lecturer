@@ -1,0 +1,44 @@
+[
+  {
+    "from": "July 2021",
+    "to": "July 2021",
+    "as": "Part-time Lecturer",
+    "at": "Graduate School of System Informatics, Kobe University.",
+    "note": "[ITスペシャリスト養成コース（Kobe Spiral 2021）](http://www.csi.kobe-u.ac.jp/kenkyu/program.html)"
+  },
+  {
+    "from": "April 2017",
+    "to": "March 2021",
+    "as": "Part-time Lecturer",
+    "at": "School of Engineering science, Osaka University.",
+    "note": "[AiBiC Spiral](https://aibic-spiral.enpit.jp/)"
+  },
+  {
+    "from": "2016",
+    "to": "Present",
+    "as": "Part-time Lecturer",
+    "at": "Faculty of Engineering, Okayama University.",
+    "note": "Talk about UML, Design Pattern, Software Architecture, MVC and etc. in software design cl`as`s (The third semester)."
+  },
+  {
+    "as": "Part-time Lecturer",
+    "at": "Graduate School of Information Science and Technology, Osaka University.",
+    "note": "[Cloud Spiral](http://cloud-spiral.enpit.jp/)",
+    "from": "April 2013",
+    "to": "March 2018"
+  },
+  {
+    "as": "Part-time Lecturer",
+    "at": "Faculty of Science and Engineering, Kindai University.",
+    "note": "Talk about Design Patterns.",
+    "from": "April 2008",
+    "to": "March 2010"
+  },
+  {
+    "as": "Part-time Lecturer",
+    "at": "Faculty of Science and Engineering, Kindai University.",
+    "note": "Talk about Design Patterns.",
+    "from": "April 2004",
+    "to": "March 2006"
+  }
+]

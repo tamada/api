@@ -1,0 +1,60 @@
+{
+  "endpoints": [
+    {
+      "path": "/api",
+      "description": "API Discovery (English)"
+    },
+    {
+      "path": "/api/ja",
+      "description": "API Discovery (Japanese)"
+    },
+    {
+      "path": "/api/profile",
+      "description": "Haruaki Tamada's profile"
+    },
+    {
+      "path": "/api/activities",
+      "description": "Conference and academic activities"
+    },
+    {
+      "path": "/api/degrees",
+      "description": "Academic degrees obtained"
+    },
+    {
+      "path": "/api/job-histories",
+      "description": "Career history"
+    },
+    {
+      "path": "/api/job-histories/current",
+      "description": "Current career entry"
+    },
+    {
+      "path": "/api/skills",
+      "description": "Technical and language skills"
+    },
+    {
+      "path": "/api/members/all",
+      "description": "All lab members (students, alumni, collaborators)"
+    },
+    {
+      "path": "/api/papers",
+      "description": "All academic publications"
+    },
+    {
+      "path": "/api/papers/recent",
+      "description": "Latest publications"
+    },
+    {
+      "path": "/api/theses",
+      "description": "All bachelor, master, and doctoral theses"
+    },
+    {
+      "path": "/api/grants",
+      "description": "Research grants and funding"
+    },
+    {
+      "path": "/api/grants/actives",
+      "description": "Active research grants"
+    }
+  ]
+}

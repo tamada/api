@@ -1,0 +1,60 @@
+{
+  "endpoints": [
+    {
+      "path": "/api",
+      "description": "API 探索 (英語)"
+    },
+    {
+      "path": "/api/ja",
+      "description": "API 探索 (日本語)"
+    },
+    {
+      "path": "/api/profile",
+      "description": "玉田 春昭のプロフィール情報"
+    },
+    {
+      "path": "/api/activities",
+      "description": "学会活動および研究室活動実績"
+    },
+    {
+      "path": "/api/degrees",
+      "description": "取得学位情報"
+    },
+    {
+      "path": "/api/job-histories",
+      "description": "職歴情報一覧"
+    },
+    {
+      "path": "/api/job-histories/current",
+      "description": "現在の主な職歴"
+    },
+    {
+      "path": "/api/skills",
+      "description": "スキル・技術スタック"
+    },
+    {
+      "path": "/api/members/all",
+      "description": "研究室全メンバー一覧"
+    },
+    {
+      "path": "/api/papers",
+      "description": "研究業績（論文・発表）一覧"
+    },
+    {
+      "path": "/api/papers/recent",
+      "description": "最新の研究業績"
+    },
+    {
+      "path": "/api/theses",
+      "description": "研究室の学位論文一覧"
+    },
+    {
+      "path": "/api/grants",
+      "description": "研究資金・助成金情報"
+    },
+    {
+      "path": "/api/grants/actives",
+      "description": "現在継続中の研究資金"
+    }
+  ]
+}
