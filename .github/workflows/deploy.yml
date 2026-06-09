@@ -1,0 +1,63 @@
+name: Generate and Deploy API
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Set up Pkl
+        run: |
+          curl -L -o pkl https://github.com/apple/pkl/releases/download/0.25.2/pkl-linux-amd64
+          chmod +x pkl
+          sudo mv pkl /usr/local/bin/pkl
+          pkl --version
+
+      - name: Set up Just
+        uses: taiki-e/install-action@just
+
+      - name: Generate and Test Tamada API
+        run: |
+          mkdir -p dist_tamada
+          just test_tamada dist_tamada
+
+      - name: Deploy Tamada API to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist_tamada
+          publish_branch: gh-pages
+          keep_files: true
+
+      - name: Generate and Test TamadaLab API
+        run: |
+          mkdir -p dist_lab
+          just test_tamadalab dist_lab
+
+      - name: Deploy TamadaLab API to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          # 外部リポジトリ(tamadalab/api)へのデプロイには、
+          # そのリポジトリへの書き込み権限を持つ PAT (Personal Access Token) が必要です。
+          # GitHub リポジトリの Secrets に API_TOKEN_FOR_LAB_DEPLOY という名前で保存してください。
+          personal_token: ${{ secrets.API_TOKEN_FOR_LAB_DEPLOY }}
+          external_repository: tamadalab/api
+          publish_dir: ./dist_lab
+          publish_branch: gh-pages
+          keep_files: true

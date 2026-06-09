@@ -1,0 +1,36 @@
+{
+  "endpoints": [
+    {
+      "path": "/api",
+      "description": "API Discovery (English)"
+    },
+    {
+      "path": "/api/ja",
+      "description": "API Discovery (Japanese)"
+    },
+    {
+      "path": "/api/profile",
+      "description": "Haruaki Tamada's profile"
+    },
+    {
+      "path": "/api/activities",
+      "description": "Academic activities"
+    },
+    {
+      "path": "/api/degrees",
+      "description": "Degrees obtained"
+    },
+    {
+      "path": "/api/job-histories",
+      "description": "Career history"
+    },
+    {
+      "path": "/api/job-histories/current",
+      "description": "Current position"
+    },
+    {
+      "path": "/api/skills",
+      "description": "Skills and technical stack"
+    }
+  ]
+}
