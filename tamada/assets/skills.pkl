@@ -1,4 +1,4 @@
-new Listing {
+skills = new Listing {
   new {
     skill = "Japanese"
     icon = ":jp:"
@@ -119,4 +119,8 @@ new Listing {
     description = "Studying now!"
     level = 30
   }
+}
+
+output {
+  value = skills
 }

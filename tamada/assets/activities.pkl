@@ -1,4 +1,4 @@
-new Listing {
+activities = new Listing {
   new {
     label = "WSSE 2026"
     href = "https://wsse.org/"
@@ -290,4 +290,8 @@ new Listing {
     from = "2011-11-03"
     to = "2011-11-04"
   }
+}
+
+output {
+  value = activities
 }

@@ -1,4 +1,4 @@
-new Listing {
+degrees = new Listing {
   new {
     title = "Doctor (Engineering)"
     school = "Graduate School of Information Science, Nara Institute of Science and Technology (NAIST)"
@@ -19,4 +19,8 @@ new Listing {
     from = "April 1995"
     to = "March 1999"
   }
+}
+
+output {
+  value = degrees
 }

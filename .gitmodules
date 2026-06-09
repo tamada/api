@@ -1,0 +1,3 @@
+[submodule "tamadalab"]
+	path = tamadalab
+	url = git@github.com:tamadalab/api.git
