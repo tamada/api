@@ -1,0 +1,108 @@
+class SNS {
+    service: String
+    href: String
+    icon: String
+}
+
+class Thesis {
+    id: String
+    type: String = "bthesis"
+    title: String
+    author: String|Null = null
+    year: Int
+    href: String|Null = null
+    available: Listing<String>
+    language: String = "Japanese"
+}
+
+class Image {
+    type: String = "image"
+    src: String
+}
+
+class Gravatar {
+    type: String = "gravatar"
+    email: String
+}
+
+class GitHubUserIcon {
+    type: String = "github"
+    user: String
+}
+
+class GoogleScholar {
+    type: String = "googlescholar"
+    uid: String
+}
+class ResearchMap {
+    type: String = "researchmap"
+    uid: String
+}
+
+class Degree {
+    degree: String
+    year: Int
+    month: Int
+    institution: String = "京都産業大学"
+    thesis: Thesis
+}
+
+class NonDegree {
+    year: Int
+    month: Int
+    status: String
+}
+
+class Member {
+    id: String
+    name: String
+    ename: String
+    category: String = "almus"
+    generation: Int = null
+    fromYear: Int|Null = null
+    student_id: String|Null = null
+    affiliation: String|Null = null
+    degrees: Listing<Degree|NonDegree> = new Listing<Degree>{}
+    icon: Image|Gravatar|GitHubUserIcon|GoogleScholar|ResearchMap|Null = null
+    snss: Listing<SNS> = new Listing<SNS>{}
+}
+
+profile = new {
+    id = "00-tamada"
+    name = "玉田 春昭"
+    ename = "Haruaki Tamada"
+    affiliation = "教授 (Professor)"
+    category = "teachers"
+    generation = 0
+    snss = new { 
+        new { service = "www"            icon = "fas fa-home"       href = "https://tamada.github.io/" }
+        new { service = "twitter"        icon = "fab fa-twitter"    href = "https://twitter.com/tama5" }
+        new { service = "github"         icon = "fab fa-github"     href = "https://github.com/"       }
+        new { service = "docker"         icon = "fab fa-docker"     href = "https://hub.docker.com/u/tamada/" }
+        new { service = "instagram"      icon = "fab fa-instagram"  href = "https://www.instagram.com/htamada/" }
+        new { service = "Google Scholar" icon = "fas fa-university" href = "https://scholar.google.com/citations?user=Qbslp6UAAAAJ&hl=ja" }
+    }
+    icon = new Gravatar { email = "tamada@cafebabe.jp" }
+    fromYear = 2008
+    degrees = new {
+      new Degree {
+        degree = "博士（工学）"
+        institution = "奈良先端科学技術大学院大学"
+        year = 2006
+        month = 3
+        thesis = new {
+          id = "2006dthesis_tamada"
+          type = "dthesis"
+          title = "バースマークと動的名前解決によるソフトウェアプロテクション"
+          year = 2006
+          href = "https://library.naist.jp/opac/book/40417"
+          language = "Japanese"
+          available = new { "like" "link" }
+        }
+      }
+    }
+  }
+
+output {
+  value = profile
+}
