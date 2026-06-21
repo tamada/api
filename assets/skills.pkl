@@ -119,6 +119,12 @@ skills = new Listing {
     description = "Studying now!"
     level = 30
   }
+  new {
+    skill = "Jujutsu"
+    icon = "jj-logo.svg"
+    description = "Try to use instead of git!"
+    level = 10
+  }
 }
 
 output {

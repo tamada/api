@@ -7,6 +7,20 @@ activities = new Listing {
     location = "Nara, Japan"
   }
   new {
+    label = "SNPD 2026-I"
+    href = "https://acisinternational.org/conferences/snpd-2026-i/"
+    from = "2026-08-22"
+    to = "2026-08-24"
+    location = "Okayama, Japan"
+  }
+  new {
+    label = "ICIS 2026"
+    href = "https://acisinternational.org/conferences/icis-2026/"
+    from = "2026-05-27"
+    to = "2026-05-29"
+    location = "Towson, MD, USA"
+  }
+  new {
     label = "SERA 2026"
     href = "https://acisinternational.org/conferences/sera-2026/"
     from = "2026-05-27"

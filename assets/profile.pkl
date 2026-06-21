@@ -58,7 +58,7 @@ class Member {
     name: String
     ename: String
     category: String = "almus"
-    generation: Int = null
+    generation: Int
     fromYear: Int|Null = null
     student_id: String|Null = null
     affiliation: String|Null = null

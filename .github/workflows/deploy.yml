@@ -12,6 +12,16 @@ jobs:
     permissions:
       contents: write
     steps:
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+          # this SSH_PRIVATE_KEY is the deploy key for tamadalab/api
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+          
       - name: Checkout
         uses: actions/checkout@v6
         with:
@@ -53,10 +63,6 @@ jobs:
       - name: Deploy TamadaLab API to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
-          # 外部リポジトリ(tamadalab/api)へのデプロイには、
-          # そのリポジトリへの書き込み権限を持つ PAT (Personal Access Token) が必要です。
-          # GitHub リポジトリの Secrets に API_TOKEN_FOR_LAB_DEPLOY という名前で保存してください。
-          personal_token: ${{ secrets.API_TOKEN_FOR_LAB_DEPLOY }}
           external_repository: tamadalab/api
           publish_dir: ./dist_lab
           publish_branch: gh-pages
