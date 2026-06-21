@@ -12,20 +12,11 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-          # this SSH_PRIVATE_KEY is the deploy key for tamadalab/api
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-          
       - name: Checkout
         uses: actions/checkout@v6
         with:
           submodules: recursive
+          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Set up Python
         uses: actions/setup-python@v5
