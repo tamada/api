@@ -1,0 +1,44 @@
+[
+  {
+    "from": "2023-12-14",
+    "href": "https://acisinternational.org/conferences/bcd-2023/",
+    "label": "BCD 2023",
+    "location": "Ho Chi Minh City, Vietnam",
+    "to": "2023-12-16"
+  },
+  {
+    "from": "2023-12-06",
+    "href": "https://acisinternational.org/conferences/snpd-2023-winter/",
+    "label": "SNPD 2023 Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2023-12-08"
+  },
+  {
+    "from": "2023-04-24",
+    "href": "https://iceis.scitevents.org/?y=2023",
+    "label": "ICEIS 2023",
+    "location": "Prague, Czech Republic",
+    "to": "2023-04-26"
+  },
+  {
+    "from": "2023-07-05",
+    "href": "https://acisinternational.org/conferences/snpd-2023/",
+    "label": "SNPD 2023 Summer",
+    "location": "Taiyuan, China",
+    "to": "2023-07-07"
+  },
+  {
+    "from": "2023-12-10",
+    "href": "http://acisinternational.org/conferences/icis-2023/",
+    "label": "ICIS 2023",
+    "location": "Hyderabad, India",
+    "to": "2023-12-13"
+  },
+  {
+    "from": "2023-05-23",
+    "href": "http://acisinternational.org/conferences/sera-2023/",
+    "label": "SERA 2023",
+    "location": "Orlando, FL, USA",
+    "to": "2023-05-25"
+  }
+]

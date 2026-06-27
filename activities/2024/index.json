@@ -1,0 +1,44 @@
+[
+  {
+    "from": "2024-12-04",
+    "href": "https://acisinternational.org/conferences/snpd2024-winter/",
+    "label": "SNPD 2024-Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2024-12-06"
+  },
+  {
+    "from": "2024-12-15",
+    "href": "https://acisinternational.org/conferences/icis-2024/",
+    "label": "ICIS 2024",
+    "location": "Bangkok, Thailand",
+    "to": "2024-12-18"
+  },
+  {
+    "from": "2024-07-16",
+    "href": "https://acisinternational.org/conferences/bcd-2024/",
+    "label": "BCD 2024-Summer",
+    "location": "Kitakyushu, Japan",
+    "to": "2024-07-18"
+  },
+  {
+    "from": "2024-07-05",
+    "href": "https://acisinternational.org/conferences/snpd-2024/",
+    "label": "SNPD 2024-Summer",
+    "location": "Beijing, China",
+    "to": "2024-07-07"
+  },
+  {
+    "from": "2024-05-30",
+    "href": "https://acisinternational.org/conferences/sera-2024/",
+    "label": "SERA 2024",
+    "location": "Honolulu, HI, USA",
+    "to": "2024-06-01"
+  },
+  {
+    "from": "2024-04-28",
+    "href": "https://iceis.scitevents.org/?y=2024",
+    "label": "ICEIS 2024",
+    "location": "Angers, France",
+    "to": "2024-04-30"
+  }
+]

@@ -1,122 +1,128 @@
 [
   {
-    "skill": "Japanese",
-    "icon": ":jp:",
     "description": "Native!",
-    "level": 90
+    "icon": ":jp:",
+    "level": 90,
+    "skill": "Japanese"
   },
   {
-    "skill": "English",
-    "icon": ":us:",
     "description": "Fine, thank you!",
-    "level": 70
+    "icon": ":us:",
+    "level": 70,
+    "skill": "English"
   },
   {
-    "skill": "bash",
-    "icon": "bash.svg",
     "description": "I live on bash!, zsh?, fish? I don't know!",
-    "level": 70
+    "icon": "bash.svg",
+    "level": 70,
+    "skill": "bash"
   },
   {
-    "skill": "LaTeX",
-    "icon": "latex.svg",
     "description": "Writing papers, theses, and books, LaTeX is the best tool for me.",
-    "level": 70
+    "icon": "latex.svg",
+    "level": 70,
+    "skill": "LaTeX"
   },
   {
-    "skill": "Go lang",
-    "icon": "go.svg",
     "description": "Using as the main language for development.",
-    "level": 70
+    "icon": "go.svg",
+    "level": 70,
+    "skill": "Go lang"
   },
   {
-    "skill": "Java",
-    "icon": "java.svg",
     "description": "Before using the Go language, this is the main language for development.",
-    "level": 80
+    "icon": "java.svg",
+    "level": 80,
+    "skill": "Java"
   },
   {
-    "skill": "JavaScript",
-    "icon": "javascript.svg",
     "description": "Writing the web applications, JavaScript is the key language. Recently, interested in TypeScript.",
-    "level": 70
+    "icon": "javascript.svg",
+    "level": 70,
+    "skill": "JavaScript"
   },
   {
-    "skill": "Docker",
-    "icon": "docker.svg",
     "description": "Providing the most of my products as dockerized containers.",
-    "level": 60
+    "icon": "docker.svg",
+    "level": 60,
+    "skill": "Docker"
   },
   {
-    "skill": "git",
-    "icon": "git.svg",
     "description": "Of course, I can use it, because I usually use GitHub.",
-    "level": 70
+    "icon": "git.svg",
+    "level": 70,
+    "skill": "git"
   },
   {
-    "skill": "TypeScript",
-    "icon": "typescript.svg",
     "description": "I want to learn it, but not yet.",
-    "level": 10
+    "icon": "typescript.svg",
+    "level": 10,
+    "skill": "TypeScript"
   },
   {
-    "skill": "WASM",
-    "icon": "wasm.svg",
     "description": "The next main target in my research topics.",
-    "level": 20
+    "icon": "wasm.svg",
+    "level": 20,
+    "skill": "WASM"
   },
   {
-    "skill": "LLVM",
-    "icon": "llvm.svg",
     "description": "I want to learn it for more deep understands of Rust and WASM.",
-    "level": 20
+    "icon": "llvm.svg",
+    "level": 20,
+    "skill": "LLVM"
   },
   {
-    "skill": "GitHub",
-    "icon": "github.svg",
     "description": "Completely depends on GitHub for my products and papers.",
-    "level": 80
+    "icon": "github.svg",
+    "level": 80,
+    "skill": "GitHub"
   },
   {
-    "skill": "C",
-    "icon": "c.svg",
     "description": "My first acquired programming language. However, not use in profession.",
-    "level": 70
+    "icon": "c.svg",
+    "level": 70,
+    "skill": "C"
   },
   {
-    "skill": "macOS",
-    "icon": "apple.svg",
     "description": "Using as the main operating system.",
-    "level": 80
+    "icon": "apple.svg",
+    "level": 80,
+    "skill": "macOS"
   },
   {
-    "skill": "Hugo",
-    "icon": "hugo.svg",
     "description": "Using for personal, and official web sites, and product web sites.",
-    "level": 60
+    "icon": "hugo.svg",
+    "level": 60,
+    "skill": "Hugo"
   },
   {
-    "skill": "Rust",
-    "icon": "rust.svg",
     "description": "My favorite programming language in the these days!",
-    "level": 70
+    "icon": "rust.svg",
+    "level": 70,
+    "skill": "Rust"
   },
   {
-    "skill": "VSCode",
-    "icon": "vscode.svg",
     "description": "The de-facto standard editor, everyone use it. Of course I use it.",
-    "level": 50
+    "icon": "vscode.svg",
+    "level": 50,
+    "skill": "VSCode"
   },
   {
-    "skill": "Windows",
-    "icon": "windows.svg",
     "description": "Now, I do not use as the main OS, however, Windows PC is prepared.",
-    "level": 50
+    "icon": "windows.svg",
+    "level": 50,
+    "skill": "Windows"
   },
   {
-    "skill": "Kubernetes",
-    "icon": "kubernetes.svg",
     "description": "Studying now!",
-    "level": 30
+    "icon": "kubernetes.svg",
+    "level": 30,
+    "skill": "Kubernetes"
+  },
+  {
+    "description": "Try to use instead of git!",
+    "icon": "jj-logo.svg",
+    "level": 10,
+    "skill": "Jujutsu"
   }
 ]

@@ -1,0 +1,307 @@
+[
+  {
+    "from": "2026-10-16",
+    "href": "https://wsse.org/",
+    "label": "WSSE 2026",
+    "location": "Nara, Japan",
+    "to": "2026-10-18"
+  },
+  {
+    "from": "2026-08-22",
+    "href": "https://acisinternational.org/conferences/snpd-2026-i/",
+    "label": "SNPD 2026-I",
+    "location": "Okayama, Japan",
+    "to": "2026-08-24"
+  },
+  {
+    "from": "2026-05-27",
+    "href": "https://acisinternational.org/conferences/icis-2026/",
+    "label": "ICIS 2026",
+    "location": "Towson, MD, USA",
+    "to": "2026-05-29"
+  },
+  {
+    "from": "2026-05-27",
+    "href": "https://acisinternational.org/conferences/sera-2026/",
+    "label": "SERA 2026",
+    "location": "Towson, MD, USA",
+    "to": "2026-05-29"
+  },
+  {
+    "from": "2026-05-22",
+    "href": "https://iceis.scitevents.org/?y=2026",
+    "label": "ICEIS 2026",
+    "location": "Benidorm, Spain",
+    "to": "2026-05-24"
+  },
+  {
+    "from": "2025-12-03",
+    "href": "https://acisinternational.org/conferences/snpd-2025-winter/",
+    "label": "SNPD 2025 Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2025-12-05"
+  },
+  {
+    "from": "2025-06-25",
+    "href": "https://acisinternational.org/conferences/snpd-2025-summeri/",
+    "label": "SNPD 2025 Summer-I",
+    "location": "Busan, South Korea",
+    "to": "2025-06-27"
+  },
+  {
+    "from": "2025-02-06",
+    "href": "https://acisinternational.org/conferences/bcd-2024-winter/",
+    "label": "BCD 2025-Winter",
+    "location": "Da Nang, Vietnam",
+    "to": "2025-02-08"
+  },
+  {
+    "from": "2025-10-24",
+    "href": "https://wsse.org/2025.html",
+    "label": "WSSE 2025",
+    "location": "Okayama, Japan",
+    "to": "2025-10-26"
+  },
+  {
+    "from": "2025-05-29",
+    "href": "https://acisinternational.org/conferences/sera-2025/",
+    "label": "SERA 2025",
+    "location": "Las Vegas, NV, USA",
+    "to": "2025-05-31"
+  },
+  {
+    "from": "2025-04-04",
+    "href": "https://iceis.scitevents.org/?y=2025",
+    "label": "ICEIS 2025",
+    "location": "Porto, Portugal",
+    "to": "2025-04-06"
+  },
+  {
+    "from": "2024-12-04",
+    "href": "https://acisinternational.org/conferences/snpd2024-winter/",
+    "label": "SNPD 2024-Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2024-12-06"
+  },
+  {
+    "from": "2024-12-15",
+    "href": "https://acisinternational.org/conferences/icis-2024/",
+    "label": "ICIS 2024",
+    "location": "Bangkok, Thailand",
+    "to": "2024-12-18"
+  },
+  {
+    "from": "2024-07-16",
+    "href": "https://acisinternational.org/conferences/bcd-2024/",
+    "label": "BCD 2024-Summer",
+    "location": "Kitakyushu, Japan",
+    "to": "2024-07-18"
+  },
+  {
+    "from": "2024-07-05",
+    "href": "https://acisinternational.org/conferences/snpd-2024/",
+    "label": "SNPD 2024-Summer",
+    "location": "Beijing, China",
+    "to": "2024-07-07"
+  },
+  {
+    "from": "2024-05-30",
+    "href": "https://acisinternational.org/conferences/sera-2024/",
+    "label": "SERA 2024",
+    "location": "Honolulu, HI, USA",
+    "to": "2024-06-01"
+  },
+  {
+    "from": "2024-04-28",
+    "href": "https://iceis.scitevents.org/?y=2024",
+    "label": "ICEIS 2024",
+    "location": "Angers, France",
+    "to": "2024-04-30"
+  },
+  {
+    "from": "2023-12-14",
+    "href": "https://acisinternational.org/conferences/bcd-2023/",
+    "label": "BCD 2023",
+    "location": "Ho Chi Minh City, Vietnam",
+    "to": "2023-12-16"
+  },
+  {
+    "from": "2023-12-06",
+    "href": "https://acisinternational.org/conferences/snpd-2023-winter/",
+    "label": "SNPD 2023 Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2023-12-08"
+  },
+  {
+    "from": "2023-04-24",
+    "href": "https://iceis.scitevents.org/?y=2023",
+    "label": "ICEIS 2023",
+    "location": "Prague, Czech Republic",
+    "to": "2023-04-26"
+  },
+  {
+    "from": "2023-07-05",
+    "href": "https://acisinternational.org/conferences/snpd-2023/",
+    "label": "SNPD 2023 Summer",
+    "location": "Taiyuan, China",
+    "to": "2023-07-07"
+  },
+  {
+    "from": "2023-12-10",
+    "href": "http://acisinternational.org/conferences/icis-2023/",
+    "label": "ICIS 2023",
+    "location": "Hyderabad, India",
+    "to": "2023-12-13"
+  },
+  {
+    "from": "2023-05-23",
+    "href": "http://acisinternational.org/conferences/sera-2023/",
+    "label": "SERA 2023",
+    "location": "Orlando, FL, USA",
+    "to": "2023-05-25"
+  },
+  {
+    "from": "2022-12-07",
+    "href": "https://acisinternational.org/conferences/snpd-2022-winter/",
+    "label": "SNPD 2022 Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2022-12-09"
+  },
+  {
+    "from": "2022-12-06",
+    "href": "https://conf.researchr.org/home/apsec-2022/",
+    "label": "APSEC 2022 (Software Engineering Education)",
+    "location": "Virtual",
+    "to": "2022-12-09"
+  },
+  {
+    "from": "2022-04-25",
+    "href": "https://iceis.scitevents.org/?y=2022",
+    "label": "ICEIS 2022",
+    "location": "Virtual",
+    "to": "2022-04-27"
+  },
+  {
+    "from": "2022-12-09",
+    "href": "https://acisinternational.org/conferences/icis-2022/",
+    "label": "ICIS 2022",
+    "location": "Copenhagen, Denmark",
+    "to": "2022-12-14"
+  },
+  {
+    "from": "2022-07-04",
+    "href": "https://acisinternational.org/conferences/snpd-2022-summer/",
+    "label": "SNPD 2022 Summer",
+    "location": "Shanghai, China",
+    "to": "2022-07-06"
+  },
+  {
+    "from": "2022-05-22",
+    "href": "https://acisinternational.org/conferences/sera-2022/",
+    "label": "SERA 2022",
+    "location": "Las Vegas, NV, USA",
+    "to": "2022-05-25"
+  },
+  {
+    "from": "2022-01-21",
+    "href": "https://www.icsim.org/icsim2022.html",
+    "label": "ICSIM 2022",
+    "location": "Yokohama, Japan",
+    "to": "2022-01-23"
+  },
+  {
+    "href": "http://acisinternational.org/conferences/icis-2021-fall/",
+    "label": "ICIS 2021-Fall"
+  },
+  {
+    "from": "2021-06-23",
+    "href": "http://acisinternational.org/conferences/icis-2021/",
+    "label": "ICIS 2021-Summer",
+    "location": "Shanghai, China",
+    "to": "2021-06-25"
+  },
+  {
+    "href": "http://acisinternational.org/conferences/bcd-2021/",
+    "label": "BCD 2021"
+  },
+  {
+    "href": "http://acisinternational.org/conferences/snpd-2021-winter/",
+    "label": "SNPD 2021 Winter"
+  },
+  {
+    "href": "http://acisinternational.org/conferences/snpd-2020/",
+    "label": "SNPD 2020",
+    "location": "Cancelled (Melbourne, Australia)"
+  },
+  {
+    "href": "http://acisinternational.org/conferences/icis2020/",
+    "label": "ICIS 2020"
+  },
+  {
+    "href": "http://acisinternational.org/conferences/ai-2020/",
+    "label": "AI 2020"
+  },
+  {
+    "from": "2019-12-15",
+    "href": "http://acisinternational.org/conferences/icis2019/",
+    "label": "ICIS 2019",
+    "location": "Munich, Germany",
+    "to": "2019-12-18"
+  },
+  {
+    "from": "2019-05-29",
+    "href": "https://ieeexplore.ieee.org/xpl/conhome/8882128/proceeding",
+    "label": "BCD 2019",
+    "location": "Honolulu, Hawaii, USA",
+    "to": "2019-05-31"
+  },
+  {
+    "from": "2018-06-06",
+    "href": "https://www.computer.org/csdl/proceedings/icis/2018/13Jkr98ynrg",
+    "label": "ICIS 2018",
+    "location": "Singapore, Singapore",
+    "to": "2018-06-08"
+  },
+  {
+    "from": "2018-07-10",
+    "href": "http://acisinternational.org/conferences/bcd2018/",
+    "label": "BCD 2018",
+    "location": "Yonago, Japan",
+    "to": "2018-07-12"
+  },
+  {
+    "from": "2017-07-09",
+    "href": "http://www.iaiai.org/conference/aai2017/siss-2017/",
+    "label": "SISS 2017",
+    "location": "Hamamatsu, Japan",
+    "to": "2017-07-13"
+  },
+  {
+    "from": "2017-07-09",
+    "href": "http://www.wikicfp.com/cfp/servlet/event.showcfp?eventid=59326&copyownerid=97622",
+    "label": "BCD 2017",
+    "location": "Hamamatsu, Japan",
+    "to": "2017-07-13"
+  },
+  {
+    "from": "2016-05-24",
+    "href": "http://acisinternational.org/conferences/icis2017/",
+    "label": "ICIS 2017",
+    "location": "Wuhan, China",
+    "to": "2016-05-26"
+  },
+  {
+    "from": "2016-06-26",
+    "href": "https://acisinternational.org/icis-2016-photos/",
+    "label": "ICIS 2016",
+    "location": "Okayama, Japan",
+    "to": "2016-06-29"
+  },
+  {
+    "from": "2011-11-03",
+    "href": "https://mensura.wordpress.com/",
+    "label": "MENSURA 2011",
+    "location": "Nara, Japan",
+    "to": "2011-11-04"
+  }
+]

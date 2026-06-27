@@ -1,0 +1,51 @@
+[
+  {
+    "from": "2022-12-07",
+    "href": "https://acisinternational.org/conferences/snpd-2022-winter/",
+    "label": "SNPD 2022 Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2022-12-09"
+  },
+  {
+    "from": "2022-12-06",
+    "href": "https://conf.researchr.org/home/apsec-2022/",
+    "label": "APSEC 2022 (Software Engineering Education)",
+    "location": "Virtual",
+    "to": "2022-12-09"
+  },
+  {
+    "from": "2022-04-25",
+    "href": "https://iceis.scitevents.org/?y=2022",
+    "label": "ICEIS 2022",
+    "location": "Virtual",
+    "to": "2022-04-27"
+  },
+  {
+    "from": "2022-12-09",
+    "href": "https://acisinternational.org/conferences/icis-2022/",
+    "label": "ICIS 2022",
+    "location": "Copenhagen, Denmark",
+    "to": "2022-12-14"
+  },
+  {
+    "from": "2022-07-04",
+    "href": "https://acisinternational.org/conferences/snpd-2022-summer/",
+    "label": "SNPD 2022 Summer",
+    "location": "Shanghai, China",
+    "to": "2022-07-06"
+  },
+  {
+    "from": "2022-05-22",
+    "href": "https://acisinternational.org/conferences/sera-2022/",
+    "label": "SERA 2022",
+    "location": "Las Vegas, NV, USA",
+    "to": "2022-05-25"
+  },
+  {
+    "from": "2022-01-21",
+    "href": "https://www.icsim.org/icsim2022.html",
+    "label": "ICSIM 2022",
+    "location": "Yokohama, Japan",
+    "to": "2022-01-23"
+  }
+]

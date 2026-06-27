@@ -1,0 +1,44 @@
+[
+  {
+    "from": "2025-12-03",
+    "href": "https://acisinternational.org/conferences/snpd-2025-winter/",
+    "label": "SNPD 2025 Winter",
+    "location": "Taichung, Taiwan",
+    "to": "2025-12-05"
+  },
+  {
+    "from": "2025-06-25",
+    "href": "https://acisinternational.org/conferences/snpd-2025-summeri/",
+    "label": "SNPD 2025 Summer-I",
+    "location": "Busan, South Korea",
+    "to": "2025-06-27"
+  },
+  {
+    "from": "2025-02-06",
+    "href": "https://acisinternational.org/conferences/bcd-2024-winter/",
+    "label": "BCD 2025-Winter",
+    "location": "Da Nang, Vietnam",
+    "to": "2025-02-08"
+  },
+  {
+    "from": "2025-10-24",
+    "href": "https://wsse.org/2025.html",
+    "label": "WSSE 2025",
+    "location": "Okayama, Japan",
+    "to": "2025-10-26"
+  },
+  {
+    "from": "2025-05-29",
+    "href": "https://acisinternational.org/conferences/sera-2025/",
+    "label": "SERA 2025",
+    "location": "Las Vegas, NV, USA",
+    "to": "2025-05-31"
+  },
+  {
+    "from": "2025-04-04",
+    "href": "https://iceis.scitevents.org/?y=2025",
+    "label": "ICEIS 2025",
+    "location": "Porto, Portugal",
+    "to": "2025-04-06"
+  }
+]

@@ -1,0 +1,65 @@
+{
+  "affiliation": "教授 (Professor)",
+  "category": "teachers",
+  "degrees": [
+    {
+      "degree": "博士（工学）",
+      "institution": "奈良先端科学技術大学院大学",
+      "month": 3,
+      "thesis": {
+        "available": [
+          "like",
+          "link"
+        ],
+        "href": "https://library.naist.jp/opac/book/40417",
+        "id": "2006dthesis_tamada",
+        "language": "Japanese",
+        "title": "バースマークと動的名前解決によるソフトウェアプロテクション",
+        "type": "dthesis",
+        "year": 2006
+      },
+      "year": 2006
+    }
+  ],
+  "ename": "Haruaki Tamada",
+  "fromYear": 2008,
+  "generation": 0,
+  "icon": {
+    "email": "tamada@cafebabe.jp",
+    "type": "gravatar"
+  },
+  "id": "00-tamada",
+  "name": "玉田 春昭",
+  "snss": [
+    {
+      "href": "https://tamada.github.io/",
+      "icon": "fas fa-home",
+      "service": "www"
+    },
+    {
+      "href": "https://twitter.com/tama5",
+      "icon": "fab fa-twitter",
+      "service": "twitter"
+    },
+    {
+      "href": "https://github.com/",
+      "icon": "fab fa-github",
+      "service": "github"
+    },
+    {
+      "href": "https://hub.docker.com/u/tamada/",
+      "icon": "fab fa-docker",
+      "service": "docker"
+    },
+    {
+      "href": "https://www.instagram.com/htamada/",
+      "icon": "fab fa-instagram",
+      "service": "instagram"
+    },
+    {
+      "href": "https://scholar.google.com/citations?user=Qbslp6UAAAAJ&hl=ja",
+      "icon": "fas fa-university",
+      "service": "Google Scholar"
+    }
+  ]
+}
