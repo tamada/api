@@ -8,7 +8,7 @@ pkl2json_tamada: (_pkl2json_impl "tamada")
 pkl2json_tamadalab: (_pkl2json_impl "tamadalab")
 
 _pkl2json_impl base:
-    #! /usr/bin/env sh
+    #! /usr/bin/env sh -x
     echo "pkl2json {{base}}"
     mkdir -p {{base}}/data
     for i in {{base}}/assets/*[^_model].pkl
