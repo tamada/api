@@ -14,14 +14,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-        with:
-          submodules: recursive
-          ssh-key: ${{ secrets.SSH_PRIVATE_KEY }}
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.x'
 
       - name: Set up Pkl
         run: |
@@ -35,26 +27,17 @@ jobs:
 
       - name: Generate and Test Tamada API
         run: |
-          mkdir -p dist_tamada
-          just test_tamada dist_tamada
+          git worktree add docs gh-pages
+          for i in assets/* ; do
+            pkl eval -f json -o data/$(basename $i .pkl).json $i
+          done
+          docker run --rm -v $PWD:/opt quay.io/tama5/fauxrest:latest data
 
-      - name: Deploy Tamada API to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist_tamada
-          publish_branch: gh-pages
-          keep_files: true
-
-      - name: Generate and Test TamadaLab API
+      - name: Deploy to GitHub Pages
         run: |
-          mkdir -p dist_lab
-          just test_tamadalab dist_lab
-
-      - name: Deploy TamadaLab API to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          external_repository: tamadalab/api
-          publish_dir: ./dist_lab
-          publish_branch: gh-pages
-          keep_files: true
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "
+          cd docs
+          git add .
+          git commit -m "Update API data"
+          git push origin gh-pages
