@@ -36,8 +36,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # obtain the UID and GID of the container to avoid permission issues when creating files
-          CONTAINER_UID=$(docker run --rm quay.io/tama5/fauxrest:latest id -u)
-          CONTAINER_GID=$(docker run --rm quay.io/tama5/fauxrest:latest id -g)
+          CONTAINER_UID=$(docker run --rm --entrypoint id quay.io/tama5/fauxrest:latest -u)
+          CONTAINER_GID=$(docker run --rm --entrypoint id quay.io/tama5/fauxrest:latest -g)
           for i in assets/*.pkl ; do
               pkl eval -f json -o data/$(basename $i .pkl).json $i
           done
