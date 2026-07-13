@@ -17,6 +17,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+      
       - name: Set up Pkl
         run: |
           curl -L -o pkl https://github.com/apple/pkl/releases/download/0.25.2/pkl-linux-amd64
@@ -24,27 +27,16 @@ jobs:
           sudo mv pkl /usr/local/bin/pkl
           pkl --version
 
-      - name: Set up Just
-        uses: taiki-e/install-action@just
-
-      - name: Set up Docker
-        uses: docker/setup-buildx-action@v3
-      
       - name: Setup Rust
         run: |
           rustup update stable          
 
       - name: Build API
         run: |
-          cargo build --release
           for i in assets/*.pkl ; do
-              $DEST=data/$(basename $i .pkl).json
-              if [ $DEST -nt $i ]; then
-                  echo "$DEST is up to date"
-              else
-                  pkl eval -f json -o data/$(basename $i .pkl).json $i
-              fi
+              pkl eval -f json -o data/$(basename $i .pkl).json $i
           done
+          cargo build --release
           cargo run -- --base-project data/base-products.json data/products.json
 
           mkdir docs
