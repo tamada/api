@@ -35,6 +35,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          # obtain the UID and GID of the container to avoid permission issues when creating files
+          CONTAINER_UID=$(docker run --rm dhi.io/debian-base:trixie id -u)
+          CONTAINER_GID=$(docker run --rm dhi.io/debian-base:trixie id -g)
           for i in assets/*.pkl ; do
               pkl eval -f json -o data/$(basename $i .pkl).json $i
           done
@@ -42,11 +45,13 @@ jobs:
           cargo run -- --base-project-json data/base-products.json data/products.json
 
           mkdir docs
-          sudo chown -R 1000:1000 docs
-          docker run --name fauxrest_runner \
-              -v $PWD:/opt quay.io/tama5/fauxrest:latest --dest docs data
-          docker cp fauxrest_runner:/opt/docs/* docs/
-          docker rm fauxrest_runner
+          sudo chown -R $CONTAINER_UID:$CONTAINER_GID docs
+          docker run -v $PWD:/opt quay.io/tama5/fauxrest:latest --dest docs data
+
+      - name: Restore the directory permissions
+        if: always()
+        run:
+          sudo chown -R $(id -u):$(id -g) docs
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
