@@ -32,6 +32,8 @@ jobs:
           rustup update stable          
 
       - name: Build API
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for i in assets/*.pkl ; do
               pkl eval -f json -o data/$(basename $i .pkl).json $i
