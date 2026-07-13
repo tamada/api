@@ -1,0 +1,129 @@
+class Release {
+    release_date: DateTime
+    description: String
+    name: String
+}
+
+class License {
+    spdx: String
+    name: String
+    url: String|Null
+}
+
+class Product {
+    owner: String
+    name: String
+    logo: String|Null = null
+    url: String = "https://\(owner).github.io/\(name)"
+    repository: String = "https://github.com/\(owner)/\(name)"
+    description: String|Null = null
+    releases: Listing<Release>
+    license: Listing<License>
+    languages: Listing<String>
+    sbom: String = "https://api.github.com/repos/\(owner)/\(name)/dependency-graph/sbom"
+    topics: Listing<String>
+    // The values overwriting the information fetched from GitHub.
+    // Kept in the output so that they are re-applied on every refresh.
+    overrides: Mapping = new Mapping{}
+    // `updatedAt` of the repository at the last fetch, used by product-merger
+    // to decide whether the product needs to be refreshed.
+    last_updated: DateTime|Null = null
+}
+
+// Define datetime for restricting string as ISO 8601 format.
+// 2026-06-30T12:43:00Z
+typealias DateTime = String(matches(Regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(?:\\.\\d+)?(?:Z|[+-]\\d{2}:\\d{2})$")))
+
+class ProductBase {
+    owner: String
+    name: String
+    logo: String|Null = null
+    service: String = "github"
+    // The values overwriting the information fetched from GitHub.
+    overrides: Mapping|Null = null
+    last_updated: DateTime|Null = null
+}
+
+products: Listing<ProductBase> = new {
+    new {
+        owner = "tamada"
+        name = "jj-cheat-sheet"
+        logo = "/assets/jj-cheat-sheet.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "fauxrest"
+        logo = "/assets/fauxrest.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "pick-a-boo"
+        service = "github"
+        overrides = new Mapping {
+            ["url"] = "https://crates.io/crates/pick-a-boo"
+        }
+    }
+    new {
+        owner = "tamada"
+        name = "oinkie"
+        logo = "/assets/oinkie.png"
+    }
+    new {
+        owner = "tamada"
+        name = "lis"
+        logo = "/assets/lis.png"
+    }
+    new {
+        owner = "tamada"
+        name = "spellout"
+        logo = "/assets/spellout.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "gixor"
+        logo = "/assets/gixor.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "totebag"
+        logo = "/assets/totebag.jpg"
+    }
+    new {
+        owner = "tamada"
+        name = "btmeister"
+        logo = "/assets/btmeister.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "heatman"
+        logo = "/assets/heatman.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "9rules"
+        logo = "/assets/9rules.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "peripherals"
+    }
+    new {
+        owner = "tamada"
+        name = "pochi"
+        logo = "/assets/pochi.png"
+    }
+    new {
+        owner = "tamada"
+        name = "sibling"
+        logo = "/assets/sibling.svg"
+    }
+    new {
+        owner = "tamada"
+        name = "wildcat"
+        logo = "/assets/wildcat.svg"
+    }
+}
+
+output {
+  value = products
+}

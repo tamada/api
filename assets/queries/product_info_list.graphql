@@ -1,0 +1,61 @@
+# gh api graphql --paginate --slurp -F owner='tamada' -f query='
+query ($owner: String!, $endCursor: String) {
+    user(login: $owner) {
+        repositories(first: 100, after: $endCursor) {
+            totalCount
+            nodes {
+                name
+                description
+                homepageUrl
+                url
+                isArchived
+                isPrivate
+                diskUsage
+                createdAt
+                updatedAt
+                licenseInfo {
+                    spdx: key
+                    name
+                    url
+                }
+                primaryLanguage {
+                    name
+                }
+                languages(first: 5) {
+                    nodes {
+                        name
+                    }
+                }
+                latestRelease {
+                    name
+                    tagName
+                    url
+                    description
+                    isDraft
+                    createdAt
+                    publishedAt
+                }
+                repositoryTopics(first: 5) {
+                    nodes {
+                        topic {
+                            name
+                        }
+                    }
+                }
+                collaborators {
+                    totalCount
+                }
+                stargazerCount
+                forkCount
+                watchers {
+                    totalCount
+                }
+            }
+            pageInfo {
+                endCursor
+                hasNextPage
+            }
+        }
+    }
+}
+#'
