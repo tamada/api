@@ -33,7 +33,7 @@ jobs:
 
       - name: Build API
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
           # obtain the UID and GID of the container to avoid permission issues when creating files
           CONTAINER_UID=$(docker run --rm --entrypoint id quay.io/tama5/fauxrest:latest -u)
