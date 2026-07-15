@@ -5,6 +5,15 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      repo:
+        description: 'Repository owner and name notified from.'
+        required: true
+      update_brew:
+        description: 'Need to update brew formula?'
+        type: boolean
+        required: true
+        default: false
 
 jobs:
   build-and-deploy:
@@ -65,3 +74,46 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+  notify-to-homepage:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    steps:
+      # Generate a one-time token using the private key
+      - name: Generate Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      # Fire the workflow for the other repository using the generated token
+      - name: Trigger Homebrew Tap Workflow
+        run: >
+          gh workflow run "deploy.yml"
+             --repo "tamada/tamada.github.io" 
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
+  notify-to-homebrew-tap:
+    runs-on: ubuntu-latest
+    needs: build-and-deploy
+    if: ${{ github.event.inputs.update_brew == 'true' }}
+    steps:
+      # Generate a one-time token using the private key
+      - name: Generate Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
+      # Fire the workflow for the other repository using the generated token
+      - name: Trigger Homebrew Tap Workflow
+        run: >
+          gh workflow run "deploy.yml"
+             --repo "tamada/homebrew-tap" 
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
