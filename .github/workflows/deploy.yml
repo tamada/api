@@ -82,11 +82,14 @@ jobs:
       # Generate a one-time token using the private key
       - name: Generate Token
         id: generate_token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: |
+            api
+            tamada.github.io
 
       # Fire the workflow for the other repository using the generated token
       - name: Trigger Homebrew Tap Workflow
@@ -104,11 +107,14 @@ jobs:
       # Generate a one-time token using the private key
       - name: Generate Token
         id: generate_token
-        uses: actions/create-github-app-token@v1
+        uses: actions/create-github-app-token@v3
         with:
           app-id: ${{ secrets.APP_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
+          repositories: |
+            api
+            homebrew-tap
 
       # Fire the workflow for the other repository using the generated token
       - name: Trigger Homebrew Tap Workflow
