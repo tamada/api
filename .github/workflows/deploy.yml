@@ -96,9 +96,9 @@ jobs:
 
       # Fire the workflow for the other repository using the generated token
       - name: Trigger Homebrew Tap Workflow
-        run: >
-          gh workflow run "publish_site.yaml"
-             --repo "tamada/tamada.github.io"
+        run: |
+          gh workflow run "publish_site.yaml" \
+             --repo "tamada/tamada.github.io" \
              --ref trunk
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -125,8 +125,8 @@ jobs:
 
       # Fire the workflow for the other repository using the generated token
       - name: Trigger Homebrew Tap Workflow
-        run: >
-          gh workflow run "update-formula.yaml"
+        run: |
+          gh workflow run "update-formula.yaml" \
              --repo "tamada/homebrew-tap" 
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
