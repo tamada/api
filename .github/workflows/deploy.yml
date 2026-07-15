@@ -84,17 +84,20 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.APP_ID }}
+          client-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: |
             api
             tamada.github.io
 
+      - name: Checkout
+        uses: actions/checkout@v6
+
       # Fire the workflow for the other repository using the generated token
       - name: Trigger Homebrew Tap Workflow
         run: >
-          gh workflow run "deploy.yml"
+          gh workflow run "publish_site.yaml"
              --repo "tamada/tamada.github.io" 
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
@@ -109,17 +112,20 @@ jobs:
         id: generate_token
         uses: actions/create-github-app-token@v3
         with:
-          app-id: ${{ secrets.APP_ID }}
+          client-id: ${{ secrets.CLIENT_ID }}
           private-key: ${{ secrets.APP_PRIVATE_KEY }}
           owner: ${{ github.repository_owner }}
           repositories: |
             api
             homebrew-tap
 
+      - name: Checkout
+        uses: actions/checkout@v6
+
       # Fire the workflow for the other repository using the generated token
       - name: Trigger Homebrew Tap Workflow
         run: >
-          gh workflow run "deploy.yml"
+          gh workflow run "update-formula.yaml"
              --repo "tamada/homebrew-tap" 
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
