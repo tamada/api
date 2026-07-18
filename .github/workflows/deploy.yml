@@ -63,7 +63,7 @@ jobs:
 
   deploy:
     needs: build
-    uses: tamada/workflows/.github/workflows/deploy.yml@main
+    uses: tamada/workflows/.github/workflows/build-hugo-and-publish.yaml@main
     with:
       branch: main
       workdir: .
