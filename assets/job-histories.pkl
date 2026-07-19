@@ -1,5 +1,6 @@
 job_histories = new Listing {
   new {
+    category = "university"
     from = "April 2023"
     to = "Present"
     `as` = "Professor"
@@ -7,6 +8,7 @@ job_histories = new Listing {
     note = "promoted!"
   }
   new {
+    category = "university"
     from = "April 2018"
     to = "March 2023"
     `as` = "Associate Professor"
@@ -14,6 +16,7 @@ job_histories = new Listing {
     note = "reorganized faculty."
   }
   new {
+    category = "university"
     from = "July 2021"
     to = "July 2021"
     `as` = "Part-time Lecturer"
@@ -21,6 +24,7 @@ job_histories = new Listing {
     note = "[ITスペシャリスト養成コース（Kobe Spiral 2021）](http://www.csi.kobe-u.ac.jp/kenkyu/program.html)"
   }
   new {
+    category = "university"
     from = "April 2017"
     to = "March 2021"
     `as` = "Part-time Lecturer"
@@ -28,6 +32,7 @@ job_histories = new Listing {
     note = "[AiBiC Spiral](https://aibic-spiral.enpit.jp/)"
   }
   new {
+    category = "university"
     from = "2016"
     to = "Present"
     `as` = "Part-time Lecturer"
@@ -35,6 +40,7 @@ job_histories = new Listing {
     note = "Talk about UML, Design Pattern, Software Architecture, MVC and etc. in software design cl`as`s (The third semester)."
   }
   new {
+    category = "university"
     `as` = "Guest Associate Professor"
     at = "Graduate school of information science and technology, Osaka University."
     note = "[Cloud Spiral](http://cloud-spiral.enpit.jp/)"
@@ -42,12 +48,14 @@ job_histories = new Listing {
     to = "March 2018"
   }
   new {
+    category = "university"
     `as` = "Associate Professor"
     at = "Faculty of Computer Science and Engineering, [Kyoto Sangyo University](https://www.kyoto-su.ac.jp)."
     from = "April 2013"
     to = "March 2018"
   }
   new {
+    category = "university"
     `as` = "Part-time Lecturer"
     at = "Graduate School of Information Science and Technology, Osaka University."
     note = "[Cloud Spiral](http://cloud-spiral.enpit.jp/)"
@@ -55,12 +63,14 @@ job_histories = new Listing {
     to = "March 2018"
   }
   new {
+    category = "university"
     `as` = "Assistant Professor"
     at = "Faculty of Computer Science and Engineering, [Kyoto Sangyo University](https://www.kyoto-su.ac.jp)."
     from = "April 2008"
     to = "March 2013"
   }
   new {
+    category = "university"
     `as` = "Part-time Lecturer"
     at = "Faculty of Science and Engineering, Kindai University."
     note = "Talk about Design Patterns."
@@ -68,6 +78,7 @@ job_histories = new Listing {
     to = "March 2010"
   }
   new {
+    category = "university"
     `as` = "Researcher/Assistant Professor"
     at = "Nara Institute of Science and Technology (NAIST)."
     note = "[EASE Project](https://thinkit.co.jp/free/article/0712/3/)"
@@ -75,6 +86,7 @@ job_histories = new Listing {
     to = "March 2008"
   }
   new {
+    category = "university"
     `as` = "Part-time Lecturer"
     at = "Faculty of Science and Engineering, Kindai University."
     note = "Talk about Design Patterns."
@@ -82,6 +94,7 @@ job_histories = new Listing {
     to = "March 2006"
   }
   new {
+    category = "company"
     `as` = "Software Engineer"
     at = "Sumisho Electronics co. ltd."
     note = "Developing backend of Web application with the J2EE platform."

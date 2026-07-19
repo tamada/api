@@ -143,7 +143,7 @@ snss = new {
     category = "researcher"
     label = "Zenodo"
     value = "tamada"
-    image = "https://img.shields.io/badge/Zenodo-tamada-1682D4?logo=zenodo"
+    image = "https://img.shields.io/badge/Zenodo-tamada-1682D4?logo=zenodo&logoColor=white"
     href = "https://zenodo.org/communities/tamada/"
   }
   new {
