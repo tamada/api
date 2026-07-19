@@ -168,3 +168,7 @@ snss = new {
     href = "https://github.com/tamada/homebrew-tap"
   }
 }
+
+output {
+  value = snss
+}
