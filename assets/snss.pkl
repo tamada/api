@@ -1,0 +1,170 @@
+snss = new {
+  new {
+    category = "general"
+    label = "Facebook"
+    value = "haruaki.tamada"
+    href = "https://www.facebook.com/haruaki.tamada"
+    image = "https://img.shields.io/badge/Facebook-haruaki.tamada-1877F2?logo=facebook&logoColor=white"
+  }
+  new {
+    category = "general"
+    label = "Instagram"
+    value = "htamada"
+    image = "https://img.shields.io/badge/Instagram-htamada-E4405F?logo=instagram"
+    href = "https://instagram.com/htamada"
+  }
+  new {
+    category = "general"
+    label = "LinkedIn"
+    value = "htamada"
+    image = "https://img.shields.io/badge/LinkedIn-htamada-0A66C2?logo=linkedin"
+    href = "https://www.linkedin.com/in/htamada"
+  }
+  new {
+    category = "general"
+    label = "Qiita"
+    value = "tama5"
+    image = "https://img.shields.io/badge/Qiita-tama5-55C500?logo=qiita"
+    href = "https://qiita.com/tama5"
+  }
+  new {
+    category = "general"
+    label = "Reddit"
+    value = "tamada3"
+    image = "https://img.shields.io/badge/Reddit-u/tamada3-FF4500?logo=reddit"
+    href = "https://www.reddit.com/user/tamada3"
+  }
+  new {
+    category = "general"
+    label = "X"
+    value = "tama5"
+    image = "https://img.shields.io/badge/X-%40tama5-000000?logo=x"
+    href = "https://x.com/tama5"
+  }
+  new {
+    category = "general"
+    label = "zenn.dev"
+    value = "tamada"
+    image = "https://img.shields.io/badge/zenn.dev-tamada-3EA8FF?logo=zenn"
+    href = "https://zenn.dev/tamada"
+  }
+  new {
+    category = "general"
+    label = "BlueSky"
+    value = "htamada"
+    image = "https://img.shields.io/badge/BlueSky-htamada-1185FE?logo=bluesky"
+    href = "https://bsky.app/profile/htamada.bsky.social"
+  }
+  new {
+    category = "developer"
+    label = "Bitbucket"
+    value = "htamada"
+    image = "https://img.shields.io/badge/Bitbucket-htamada-0052CC?logo=bitbucket"
+    href = "https://bitbucket.org/htamada/"
+  }
+  new {
+    category = "developer"
+    label = "Codeberg"
+    value = "tamada"
+    image = "https://img.shields.io/badge/Codeberg-tamada-2185D0?logo=codeberg"
+    href = "https://codeberg.org/tamada"
+  }
+  new {
+    category = "developer"
+    label = "crates.io"
+    value = "tamada"
+    image = "https://img.shields.io/badge/crates.io-tamada-FDD078?logo=rust"
+    href = "https://crates.io/users/tamada"
+  }
+  new {
+    category = "developer"
+    label = "Docker Hub"
+    value = "tamada"
+    image = "https://img.shields.io/badge/Docker%20Hub-tamada-2496ED?logo=docker&logoColor=white"
+    href = "https://hub.docker.com/u/tamada/"
+  }
+  new {
+    category = "developer"
+    label = "Gitea"
+    value = "tamada"
+    image = "https://img.shields.io/badge/Gitea-tamada-609926?logo=gitea"
+    href = "https://gitea.com/tamada"
+  }
+  new {
+    category = "developer"
+    label = "GitHub"
+    value = "tamada"
+    image = "https://img.shields.io/badge/GitHub-tamada-181717?logo=github"
+    href = "https://github.com/tamada"
+  }
+  new {
+    category = "developer"
+    label = "GitLab"
+    value = "htamada"
+    image = "https://img.shields.io/badge/GitLab-htamada-FCA121?logo=gitlab"
+    href = "https://gitlab.com/htamada"
+  }
+  new {
+    category = "researcher"
+    label = "Academia.edu"
+    value = "H. Tamada"
+    image = "https://img.shields.io/badge/Academia-H.%20Tamada-41454A?logo=academia"
+    href = "https://kyoto-su.academia.edu/HTamada"
+  }
+  new {
+    category = "researcher"
+    label = "DBLP"
+    value = "H. Tamada"
+    image = "https://img.shields.io/badge/DBLP-H.%20Tamada-004F9F?logo=dblp"
+    href = "https://dblp.uni-trier.de/pid/07/389.html"
+  }
+  new {
+    category = "researcher"
+    label = "Google Scholar"
+    value = "H. Tamada"
+    image = "https://img.shields.io/badge/Google%20Scholar-H.%20Tamada-4285F4?logo=google%20scholar&logoColor=white"
+    href = "https://scholar.google.co.jp/citations?user=Qbslp6UAAAAJ"
+  }
+  new {
+    category = "researcher"
+    label = "ORCID"
+    value = "H. Tamada"
+    image = "https://img.shields.io/badge/ORCID-H.%20Tamada-A6CE39?logo=orcid"
+    href = "https://orcid.org/0000-0003-1838-9184"
+  }
+  new {
+    category = "researcher"
+    label = "Research Gate"
+    value = "H. Tamada"
+    image = "https://img.shields.io/badge/Research%20Gate-H.%20Tamada-00CCBB?logo=researchgate"
+    href = "https://www.researchgate.net/profile/Haruaki_Tamada"
+  }
+  new {
+    category = "researcher"
+    label = "Zenodo"
+    value = "tamada"
+    image = "https://img.shields.io/badge/Zenodo-tamada-1682D4?logo=zenodo"
+    href = "https://zenodo.org/communities/tamada/"
+  }
+  new {
+    category = "researcher"
+    label = "Hugging Face"
+    value = "htamada"
+    image = "https://img.shields.io/badge/Hugging%20Face-htamada-FFD21E?logo=huggingface"
+    href = "https://huggingface.co/htamada"
+  }
+  new {
+    category = "misc"
+    label = "Buy me"
+    value = "a coffee"
+    image = "https://img.shields.io/badge/Buy%20me-a%20coffee!-ffdd00?logo=buy%20me%20a%20coffee"
+    href = "https://www.buymeacoffee.com/KP27ij5"
+  }
+  new {
+    category = "misc"
+    label = "Homebrew"
+    value = "tamada/tap"
+    image = "https://img.shields.io/badge/Homebrew-tamada/tap-FBB040?logo=homebrew"
+    href = "https://github.com/tamada/homebrew-tap"
+  }
+}
