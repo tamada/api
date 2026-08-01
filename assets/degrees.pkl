@@ -2,7 +2,7 @@ degrees = new Listing {
   new {
     title = "Doctor (Engineering)"
     school = "Graduate School of Information Science, Nara Institute of Science and Technology (NAIST)"
-    dissertation = "Software Protection by Birthmark and Dynamic Name Resolution. (:jp:)"
+    dissertation = "Software Protection by Birthmark and Dynamic Name Resolution. (🇯🇵)"
     href = "https://library.naist.jp/mylimedio/search/av1.do?target=local&bibid=40417&oldid=89527"
     from = "April 2003"
     to = "March 2006"

@@ -48,12 +48,12 @@ products: Listing<ProductBase> = new {
     new {
         owner = "tamada"
         name = "jj-cheat-sheet"
-        logo = "/assets/jj-cheat-sheet.svg"
+        logo = "https://tamada.github.io/api/assets/jj-cheat-sheet.svg"
     }
     new {
         owner = "tamada"
         name = "fauxrest"
-        logo = "/assets/fauxrest.svg"
+        logo = "https://tamada.github.io/api/assets/fauxrest.svg"
     }
     new {
         owner = "tamada"
@@ -66,61 +66,62 @@ products: Listing<ProductBase> = new {
     new {
         owner = "tamada"
         name = "oinkie"
-        logo = "/assets/oinkie.png"
+        logo = "https://tamada.github.io/api/assets/oinkie.png"
     }
     new {
         owner = "tamada"
         name = "lis"
-        logo = "/assets/lis.png"
+        logo = "https://tamada.github.io/api/assets/lis.png"
     }
     new {
         owner = "tamada"
         name = "spellout"
-        logo = "/assets/spellout.svg"
+        logo = "https://tamada.github.io/api/assets/spellout.svg"
     }
     new {
         owner = "tamada"
         name = "gixor"
-        logo = "/assets/gixor.svg"
+        logo = "https://tamada.github.io/api/assets/gixor.svg"
     }
     new {
         owner = "tamada"
         name = "totebag"
-        logo = "/assets/totebag.jpg"
+        logo = "https://tamada.github.io/api/assets/totebag.jpg"
     }
     new {
         owner = "tamada"
         name = "btmeister"
-        logo = "/assets/btmeister.svg"
+        logo = "https://tamada.github.io/api/assets/btmeister.svg"
     }
     new {
         owner = "tamada"
         name = "heatman"
-        logo = "/assets/heatman.svg"
+        logo = "https://tamada.github.io/api/assets/heatman.svg"
     }
     new {
         owner = "tamada"
         name = "9rules"
-        logo = "/assets/9rules.svg"
+        logo = "https://tamada.github.io/api/assets/9rules.svg"
     }
     new {
         owner = "tamada"
         name = "peripherals"
+        logo = "https://tamada.github.io/api/assets/peripherals.svg"
     }
     new {
         owner = "tamada"
         name = "pochi"
-        logo = "/assets/pochi.png"
+        logo = "https://tamada.github.io/api/assets/pochi.png"
     }
     new {
         owner = "tamada"
         name = "sibling"
-        logo = "/assets/sibling.svg"
+        logo = "https://tamada.github.io/api/assets/sibling.svg"
     }
     new {
         owner = "tamada"
         name = "wildcat"
-        logo = "/assets/wildcat.svg"
+        logo = "https://tamada.github.io/api/assets/wildcat.svg"
     }
 }
 

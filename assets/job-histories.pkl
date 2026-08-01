@@ -37,7 +37,7 @@ job_histories = new Listing {
     to = "Present"
     `as` = "Part-time Lecturer"
     at = "Faculty of Engineering, Okayama University."
-    note = "Talk about UML, Design Pattern, Software Architecture, MVC and etc. in software design cl`as`s (The third semester)."
+    note = "Talk about UML, Design Pattern, Software Architecture, MVC and etc. in software design class (The third semester)."
   }
   new {
     category = "university"
@@ -53,6 +53,7 @@ job_histories = new Listing {
     at = "Faculty of Computer Science and Engineering, [Kyoto Sangyo University](https://www.kyoto-su.ac.jp)."
     from = "April 2013"
     to = "March 2018"
+    note = "promoted"
   }
   new {
     category = "university"
