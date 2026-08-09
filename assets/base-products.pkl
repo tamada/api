@@ -10,17 +10,23 @@ class License {
     url: String|Null
 }
 
+typealias LinkType = "www" | "docs" | "logo" | "repository" | "sbom" | "registry" | "container"
+
+class Link {
+    label: String|LinkType
+    url: String
+}
+
 class Product {
     owner: String
     name: String
-    logo: String|Null = null
-    url: String = "https://\(owner).github.io/\(name)"
-    repository: String = "https://github.com/\(owner)/\(name)"
     description: String|Null = null
     releases: Listing<Release>
     license: Listing<License>
+    // Every URL of the product: the logo, the web site, the repository, the
+    // SBOM, and so on. On the output, every element is a resolved `Link`.
+    links: Listing<Link> = new Listing<Link> {}
     languages: Listing<String>
-    sbom: String = "https://api.github.com/repos/\(owner)/\(name)/dependency-graph/sbom"
     topics: Listing<String>
     // The values overwriting the information fetched from GitHub.
     // Kept in the output so that they are re-applied on every refresh.
@@ -37,91 +43,264 @@ typealias DateTime = String(matches(Regex("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\
 class ProductBase {
     owner: String
     name: String
+    // Shorthand for a `logo` link. Prefer writing it in `links`.
     logo: String|Null = null
     service: String = "github"
     // The values overwriting the information fetched from GitHub.
     overrides: Mapping|Null = null
     last_updated: DateTime|Null = null
+    links: Listing<Link|LinkType> = new Listing<Link|LinkType> {}
 }
 
 products: Listing<ProductBase> = new {
     new {
         owner = "tamada"
         name = "jj-cheat-sheet"
-        logo = "https://tamada.github.io/api/assets/jj-cheat-sheet.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/jj-cheat-sheet.svg"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "fauxrest"
-        logo = "https://tamada.github.io/api/assets/fauxrest.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/fauxrest.svg"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/fauxrest/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/fauxrest"
+            }
+            new Link {
+                label = "container"
+                url = "https://quay.io/repository/tama5/fauxrest"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "pick-a-boo"
-        service = "github"
-        overrides = new Mapping {
-            ["url"] = "https://crates.io/crates/pick-a-boo"
+        links = new {
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/pick-a-boo/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/pick-a-boo"
+            }
+            "sbom" "repository"
         }
     }
     new {
         owner = "tamada"
         name = "oinkie"
-        logo = "https://tamada.github.io/api/assets/oinkie.png"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/oinkie.png"
+            }
+            new Link {
+                label = "container"
+                url = "https://quay.io/repository/tama5/oinkie"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "lis"
-        logo = "https://tamada.github.io/api/assets/lis.png"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/lis.png"
+            }
+            new Link {
+                label = "container"
+                url = "https://quay.io/repository/tama5/lis"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "spellout"
-        logo = "https://tamada.github.io/api/assets/spellout.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/spellout.svg"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/spellout/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/spellout"
+            }
+            new Link {
+                label = "container"
+                url = "https://ghcr.io/tamada/spellout"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "gixor"
-        logo = "https://tamada.github.io/api/assets/gixor.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/gixor.svg"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/gixor/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/gixor"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "totebag"
-        logo = "https://tamada.github.io/api/assets/totebag.jpg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/totebag.jpg"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/totebag/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/totebag"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "btmeister"
-        logo = "https://tamada.github.io/api/assets/btmeister.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/btmeister.svg"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/btmeister/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/btmeister"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "heatman"
-        logo = "https://tamada.github.io/api/assets/heatman.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/heatman.svg"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/heatman/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/heatman"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "9rules"
-        logo = "https://tamada.github.io/api/assets/9rules.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/9rules.svg"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "peripherals"
-        logo = "https://tamada.github.io/api/assets/peripherals.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/peripherals.svg"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "pochi"
-        logo = "https://tamada.github.io/api/assets/pochi.png"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/pochi.png"
+            }
+            new Link {
+                label = "container"
+                url = "https://ghcr.io/tamada/pochi"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "sibling"
-        logo = "https://tamada.github.io/api/assets/sibling.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/sibling.svg"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/sibling/latest"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/sibling"
+            }
+            "sbom" "repository" "www"
+        }
     }
     new {
         owner = "tamada"
         name = "wildcat"
-        logo = "https://tamada.github.io/api/assets/wildcat.svg"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/wildcat.svg"
+            }
+            new Link {
+                label = "container"
+                url = "https://ghcr.io/tamada/wildcat"
+            }
+            "sbom" "repository" "www"
+        }
     }
 }
 

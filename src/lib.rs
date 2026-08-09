@@ -6,7 +6,7 @@ pub mod github;
 pub mod product;
 pub mod updater;
 
-pub use product::{BaseProduct, InputItem, License, Product, Release};
+pub use product::{BaseProduct, InputItem, License, Link, LinkSpec, Product, Release};
 
 pub type Result<T> = std::result::Result<T, Error>;
 

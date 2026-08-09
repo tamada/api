@@ -37,7 +37,7 @@ OUTPUT
 ### How it works
 
 1. Parses the input JSON as an array of products and/or base products
-   (see `assets/products.pkl` for the definitions).
+   (see `assets/base-products.pkl` for the definitions).
 2. Runs `gh api graphql` with `assets/queries/product_list.graphql`
    (paginated) once per owner, to obtain the last updated time (`updatedAt`)
    of all the repositories of the owner.
@@ -50,9 +50,26 @@ OUTPUT
    the fetched `url`). The `owner` and `name` keys are not overridable since
    they identify the repository. The `overrides` map itself is kept in the
    output so that it is re-applied on every refresh.
-5. Prints the resultant array of the full products in JSON. The output
-   contains `last_updated`, therefore the next run updates only the products
-   whose repositories were updated after the previous run.
+5. Resolves `links` into a single array of `{"label": ..., "url": ...}`,
+   which holds every URL of the product. An entry given as an object is kept
+   as it is, and an entry given as a bare link type is filled in as follows:
+
+   | link type | URL |
+   |-----------|-----|
+   | `www` | `homepageUrl` of the repository, or `https://<owner>.github.io/<name>` when it is empty |
+   | `repository` | `url` of the repository, or `https://github.com/<owner>/<name>` when GitHub is not accessed |
+   | `sbom` | `https://api.github.com/repos/<owner>/<name>/dependency-graph/sbom` (GitHub does not report it) |
+
+   The other types (`logo`, `docs`, `registry`, `container`) have nothing to
+   fill in, so they must be written as an object with their own `url`; a bare
+   one is logged and dropped. Writing a type as an object also pins its URL:
+   `{"label": "www", "url": ...}` is kept as it is instead of taking
+   `homepageUrl`. The `logo` key of a base product is a shorthand, and becomes
+   the first `logo` link of the output.
+6. Prints the resultant array of the full products in JSON. Every URL lives
+   in `links`: the output has no `logo`, `url`, `repository`, nor `sbom` key
+   of its own. It contains `last_updated`, therefore the next run updates
+   only the products whose repositories were updated after the previous run.
 
 The failures on individual products (e.g., renamed or removed repositories)
 are logged and do not abort the whole process; the previous information is

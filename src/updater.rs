@@ -3,7 +3,7 @@ use std::collections::{BTreeSet, HashMap};
 use chrono::{DateTime, Utc};
 
 use crate::github;
-use crate::product::{build_product, InputItem, Product};
+use crate::product::{build_product, InputItem, LinkSpec, Product};
 
 /// Updates all the given items and returns the list of full products.
 ///
@@ -67,6 +67,7 @@ fn update_item(item: InputItem, updated_map: &UpdatedMap) -> Product {
                     HashMap::new(),
                     Vec::new(),
                     updated_at,
+                    &base.links,
                 ),
                 Err(e) => {
                     log::error!("{}/{}: {}", base.owner, base.name, e);
@@ -82,11 +83,14 @@ fn update_item(item: InputItem, updated_map: &UpdatedMap) -> Product {
             match github::fetch_repository(&product.owner, &product.name) {
                 Ok(detail) => build_product(
                     detail,
-                    product.logo.clone(),
+                    None,
                     product.overrides.clone(),
                     product.others.clone(),
                     product.releases.clone(),
                     updated_at,
+                    // The links of a full product are already resolved, so they
+                    // are kept as they are.
+                    &product.links.iter().cloned().map(LinkSpec::Link).collect::<Vec<_>>(),
                 ),
                 Err(e) => {
                     log::error!("{}/{}: {}", product.owner, product.name, e);
@@ -111,10 +115,9 @@ mod tests {
 
     #[test]
     fn up_to_date_check() {
-        let json = r#"[{"owner":"tamada","name":"totebag","logo":null,
-            "url":"https://tamada.github.io/totebag",
-            "repository":"https://github.com/tamada/totebag",
-            "sbom":"https://api.github.com/repos/tamada/totebag/dependency-graph/sbom",
+        let json = r#"[{"owner":"tamada","name":"totebag","languages":["Rust"],
+            "links":[{"label":"www","url":"https://tamada.github.io/totebag"},
+                     {"label":"repository","url":"https://github.com/tamada/totebag"}],
             "last_updated":"2026-06-01T00:00:00Z"}]"#;
         let items = parse_items(json, false).unwrap();
         if let InputItem::Product(p) = &items[0] {

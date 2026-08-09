@@ -9,16 +9,29 @@ use crate::github::RepoDetail;
 
 /// Keys that are real fields of [`Product`]. They are removed from the
 /// flattened `others` map to avoid duplicated keys in the output JSON.
-const PRODUCT_KEYS: [&str; 13] = [
-    "owner", "name", "logo", "url", "repository", "description", "releases",
-    "license", "languages", "sbom", "topics", "overrides", "last_updated",
+const PRODUCT_KEYS: [&str; 10] = [
+    "owner", "name", "description", "releases", "license", "links",
+    "languages", "topics", "overrides", "last_updated",
 ];
+
+/// Keys that used to be fields of [`Product`]. They live in `links` now, so
+/// they are dropped from the flattened `others` map: otherwise an `overrides`
+/// or an old input JSON carrying them would bring them back to the output.
+const RETIRED_KEYS: [&str; 4] = ["logo", "url", "repository", "sbom"];
 
 /// Keys that must not be overridden by `overrides`, since they identify
 /// the repository to be fetched.
 const PROTECTED_KEYS: [&str; 2] = ["owner", "name"];
 
-/// A release of a product (see `Release` in `assets/products.pkl`).
+/// Drops the keys that are already a field of [`Product`], and the ones that
+/// have been retired in favor of `links`.
+fn retain_others(others: &mut HashMap<String, Value>) {
+    others.retain(|k, _| {
+        !PRODUCT_KEYS.contains(&k.as_str()) && !RETIRED_KEYS.contains(&k.as_str())
+    });
+}
+
+/// A release of a product (see `Release` in `assets/base-products.pkl`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Release {
     pub name: String,
@@ -27,7 +40,7 @@ pub struct Release {
     pub description: String,
 }
 
-/// A license of a product (see `License` in `assets/products.pkl`).
+/// A license of a product (see `License` in `assets/base-products.pkl`).
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct License {
     pub spdx: String,
@@ -36,24 +49,42 @@ pub struct License {
     pub url: Option<String>,
 }
 
-/// The full product information (see `Product` in `assets/products.pkl`).
+/// A link of a product (see `Link` in `assets/base-products.pkl`).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct Link {
+    pub label: String,
+    pub url: String,
+}
+
+/// An element of `links` in the input JSON: either a full [`Link`], or a bare
+/// link type (`"sbom"`, `"repository"`, ...) whose URL is derived from the
+/// `owner` and `name` of the product (see `LinkType` in
+/// `assets/base-products.pkl`).
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(untagged)]
+pub enum LinkSpec {
+    Type(String),
+    Link(Link),
+}
+
+/// The full product information (see `Product` in `assets/base-products.pkl`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Product {
     pub owner: String,
     pub name: String,
-    #[serde(default)]
-    pub logo: Option<String>,
-    pub url: String,
-    pub repository: String,
     #[serde(default)]
     pub description: Option<String>,
     #[serde(default)]
     pub releases: Vec<Release>,
     #[serde(default)]
     pub license: Vec<License>,
+    /// Every URL of the product in a single array: the logo, the web site, the
+    /// repository, the SBOM, and so on. The bare link types of the input
+    /// (`ProductBase.links`) are resolved into concrete URLs here.
+    #[serde(default)]
+    pub links: Vec<Link>,
     #[serde(default)]
     pub languages: Vec<String>,
-    pub sbom: String,
     #[serde(default)]
     pub topics: Vec<String>,
     /// The values overwriting the information fetched from GitHub
@@ -70,11 +101,13 @@ pub struct Product {
     pub others: HashMap<String, Value>,
 }
 
-/// The base product information (see `ProductBase` in `assets/products.pkl`).
+/// The base product information (see `ProductBase` in `assets/base-products.pkl`).
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BaseProduct {
     pub owner: String,
     pub name: String,
+    /// The logo given as its own key instead of a `logo` link. It is turned
+    /// into a link on the output, since the output has no `logo` field.
     #[serde(default)]
     pub logo: Option<String>,
     #[serde(default = "default_service")]
@@ -84,6 +117,8 @@ pub struct BaseProduct {
     pub overrides: Map<String, Value>,
     #[serde(default)]
     pub last_updated: Option<DateTime<Utc>>,
+    #[serde(default)]
+    pub links: Vec<LinkSpec>,
 }
 
 fn default_service() -> String {
@@ -122,7 +157,7 @@ impl InputItem {
 
 /// Parses the input JSON text into a list of [`InputItem`]s.
 /// Each element is recognized as a full [`Product`] when it contains
-/// product-specific keys (`repository`, `sbom`, `releases`, ...), and as a
+/// product-specific keys (`releases`, `license`, `languages`, ...), and as a
 /// [`BaseProduct`] otherwise. If `force_base` is true, all the elements are
 /// parsed as [`BaseProduct`]s.
 pub fn parse_items(text: &str, force_base: bool) -> Result<Vec<InputItem>> {
@@ -142,7 +177,7 @@ fn parse_item(value: Value, force_base: bool) -> Result<InputItem> {
     if !force_base && is_full_product(&value) {
         serde_json::from_value::<Product>(value)
             .map(|mut p| {
-                p.others.retain(|k, _| !PRODUCT_KEYS.contains(&k.as_str()));
+                retain_others(&mut p.others);
                 InputItem::Product(Box::new(p))
             })
             .map_err(Error::Parse)
@@ -153,10 +188,101 @@ fn parse_item(value: Value, force_base: bool) -> Result<InputItem> {
     }
 }
 
+/// `links` is not usable to tell the two apart, since a base product has it too.
 fn is_full_product(value: &Value) -> bool {
-    ["repository", "sbom", "releases", "license", "languages", "topics", "url"]
+    ["description", "releases", "license", "languages", "topics"]
         .iter()
         .any(|key| value.get(key).is_some())
+}
+
+/// The URLs of the repository fetched from GitHub. They are preferred to the
+/// URLs derived from `owner` and `name` when resolving the bare link types.
+/// The default (every field `None`) is used when GitHub is not accessed.
+#[derive(Debug, Default)]
+struct FetchedUrls {
+    /// `homepageUrl` of the repository.
+    www: Option<String>,
+    /// `url` of the repository.
+    repository: Option<String>,
+}
+
+impl FetchedUrls {
+    fn of(detail: &RepoDetail) -> Self {
+        Self {
+            www: detail
+                .homepage_url
+                .as_ref()
+                .map(|u| u.trim())
+                .filter(|u| !u.is_empty())
+                .map(std::string::ToString::to_string),
+            repository: Some(detail.url.clone()),
+        }
+    }
+}
+
+/// Resolves the bare link types of the input into concrete [`Link`]s, keeping
+/// the links given with their own URL as they are. A bare `www` and
+/// `repository` take the value fetched from GitHub, falling back to the URL
+/// derived from `owner` and `name`; a bare `sbom` is always derived, since
+/// GitHub does not report it. The types that cannot be derived (`logo`,
+/// `docs`, `registry`, `container`) must be given as a link with their own
+/// URL; otherwise they are dropped with a warning.
+fn resolve_links(
+    specs: &[LinkSpec],
+    owner: &str,
+    name: &str,
+    fetched: &FetchedUrls,
+) -> Vec<Link> {
+    specs
+        .iter()
+        .filter_map(|spec| match spec {
+            LinkSpec::Link(link) => Some(link.clone()),
+            LinkSpec::Type(label) => match derive_link_url(label, owner, name, fetched) {
+                Some(url) => Some(Link { label: label.clone(), url }),
+                None => {
+                    log::warn!(
+                        "{}/{}: links.{} has no URL to derive, ignored",
+                        owner, name, label
+                    );
+                    None
+                }
+            },
+        })
+        .collect()
+}
+
+fn derive_link_url(
+    label: &str,
+    owner: &str,
+    name: &str,
+    fetched: &FetchedUrls,
+) -> Option<String> {
+    match label {
+        "www" => Some(
+            fetched.www.clone().unwrap_or_else(|| default_url(owner, name)),
+        ),
+        "repository" => Some(
+            fetched.repository.clone().unwrap_or_else(|| default_repository(owner, name)),
+        ),
+        "sbom" => Some(default_sbom(owner, name)),
+        _ => None,
+    }
+}
+
+/// Builds the link specs of a base product, turning its `logo` key into a
+/// `logo` link. The key is ignored when the links already have their own.
+fn link_specs(logo: &Option<String>, links: &[LinkSpec]) -> Vec<LinkSpec> {
+    let has_logo = links.iter().any(|spec| match spec {
+        LinkSpec::Link(link) => link.label == "logo",
+        LinkSpec::Type(label) => label == "logo",
+    });
+    match logo {
+        Some(url) if !has_logo => {
+            let logo = LinkSpec::Link(Link { label: "logo".to_string(), url: url.clone() });
+            std::iter::once(logo).chain(links.iter().cloned()).collect()
+        }
+        _ => links.to_vec(),
+    }
 }
 
 impl BaseProduct {
@@ -165,14 +291,16 @@ impl BaseProduct {
         let product = Product {
             owner: self.owner.clone(),
             name: self.name.clone(),
-            logo: self.logo.clone(),
-            url: default_url(&self.owner, &self.name),
-            repository: default_repository(&self.owner, &self.name),
             description: None,
             releases: Vec::new(),
             license: Vec::new(),
+            links: resolve_links(
+                &link_specs(&self.logo, &self.links),
+                &self.owner,
+                &self.name,
+                &FetchedUrls::default(),
+            ),
             languages: Vec::new(),
-            sbom: default_sbom(&self.owner, &self.name),
             topics: Vec::new(),
             overrides: self.overrides.clone(),
             last_updated: self.last_updated,
@@ -211,7 +339,7 @@ pub fn apply_overrides(product: Product) -> Product {
     }
     match serde_json::from_value::<Product>(value) {
         Ok(mut p) => {
-            p.others.retain(|k, _| !PRODUCT_KEYS.contains(&k.as_str()));
+            retain_others(&mut p.others);
             p
         }
         Err(e) => {
@@ -237,7 +365,7 @@ pub fn default_sbom(owner: &str, name: &str) -> String {
 }
 
 /// Builds a [`Product`] from the repository detail obtained from GitHub,
-/// keeping the information (logo, overrides, known releases, and extra keys)
+/// keeping the information (links, overrides, known releases, and extra keys)
 /// of the previous product or the base product, then applies `overrides`
 /// on the fetched values.
 pub fn build_product(
@@ -247,7 +375,9 @@ pub fn build_product(
     others: HashMap<String, Value>,
     mut releases: Vec<Release>,
     last_updated: Option<DateTime<Utc>>,
+    links: &[LinkSpec],
 ) -> Product {
+    let fetched = FetchedUrls::of(&detail);
     let owner = detail.owner.login;
     let name = detail.name;
     if let Some(r) = detail.latest_release && !r.is_draft {
@@ -282,24 +412,16 @@ pub fn build_product(
         .topics
         .map(|t| t.nodes.into_iter().map(|n| n.topic.name).collect())
         .unwrap_or_default();
-    let url = match detail.homepage_url {
-        Some(u) if !u.trim().is_empty() => u,
-        _ => default_url(&owner, &name),
-    };
-    let sbom = default_sbom(&owner, &name);
-    let repository = detail.url;
     let last_updated = last_updated.or(detail.last_modified_at).or_else(|| Some(Utc::now()));
+    let links = resolve_links(&link_specs(&logo, links), &owner, &name, &fetched);
     let product = Product {
         owner,
         name,
-        logo,
-        url,
-        repository,
         description: detail.description,
         releases,
         license,
+        links,
         languages,
-        sbom,
         topics,
         overrides,
         last_updated,
@@ -320,13 +442,12 @@ mod tests {
 
     const MIXED_JSON: &str = r#"[
         {"owner": "tamada", "name": "fauxrest", "logo": null},
-        {"owner": "tamada", "name": "totebag", "logo": null,
-         "url": "https://tamada.github.io/totebag",
-         "repository": "https://github.com/tamada/totebag",
+        {"owner": "tamada", "name": "totebag",
          "releases": [{"name": "v0.7.5", "release_date": "2025-01-01T00:00:00Z", "description": ""}],
          "license": [{"spdx": "mit", "name": "MIT License", "url": null}],
+         "links": [{"label": "www", "url": "https://tamada.github.io/totebag"},
+                   {"label": "repository", "url": "https://github.com/tamada/totebag"}],
          "languages": ["Rust"],
-         "sbom": "https://api.github.com/repos/tamada/totebag/dependency-graph/sbom",
          "topics": ["archive"],
          "last_updated": "2025-06-01T00:00:00Z"}
     ]"#;
@@ -356,6 +477,7 @@ mod tests {
                 assert_eq!(p.name, "totebag");
                 assert_eq!(p.releases.len(), 1);
                 assert_eq!(p.license[0].spdx, "mit");
+                assert_eq!(p.links.len(), 2);
                 assert!(p.last_updated.is_some());
             }
             _ => panic!("expected a full product"),
@@ -372,25 +494,36 @@ mod tests {
 
     #[test]
     fn base_to_product_defaults() {
-        let items = parse_items(BASE_JSON, false).unwrap();
+        let json = r#"[{"owner": "tamada", "name": "fauxrest",
+            "logo": "https://example.com/logo.svg",
+            "links": ["www", "repository", "sbom"]}]"#;
+        let items = parse_items(json, false).unwrap();
         if let InputItem::Base(b) = &items[0] {
             let p = b.to_product();
-            assert_eq!(p.url, "https://tamada.github.io/fauxrest");
-            assert_eq!(p.repository, "https://github.com/tamada/fauxrest");
-            assert_eq!(
-                p.sbom,
-                "https://api.github.com/repos/tamada/fauxrest/dependency-graph/sbom"
-            );
+            let links = p.links.iter()
+                .map(|l| (l.label.as_str(), l.url.as_str()))
+                .collect::<Vec<_>>();
+            // the `logo` key of the base product becomes the first link, and
+            // the bare types are derived from the owner and the name.
+            assert_eq!(links, vec![
+                ("logo", "https://example.com/logo.svg"),
+                ("www", "https://tamada.github.io/fauxrest"),
+                ("repository", "https://github.com/tamada/fauxrest"),
+                ("sbom", "https://api.github.com/repos/tamada/fauxrest/dependency-graph/sbom"),
+            ]);
+        } else {
+            panic!("expected a base product");
         }
     }
 
     #[test]
-    fn overrides_overwrite_fetched_values() {
+    fn retired_keys_never_reach_the_output() {
         let items = parse_items(BASE_JSON, false).unwrap();
         if let InputItem::Base(b) = &items[1] {
-            // to_product applies overrides: url is overwritten by crates.io.
             let p = b.to_product();
-            assert_eq!(p.url, "https://crates.io/crates/pick-a-boo");
+            // `url` is not a field anymore, hence the override cannot bring it
+            // back through the flattened extra keys.
+            assert!(!p.others.contains_key("url"));
             // overrides themselves are kept for the next refresh.
             assert_eq!(
                 p.overrides.get("url").and_then(|v| v.as_str()),
@@ -399,6 +532,119 @@ mod tests {
         } else {
             panic!("expected a base product");
         }
+    }
+
+    const LINKS_JSON: &str = r#"[
+        {"owner": "tamada", "name": "fauxrest",
+         "links": [{"label": "logo", "url": "https://example.com/fauxrest.svg"},
+                   {"label": "registry", "url": "https://crates.io/crates/fauxrest"},
+                   "sbom", "repository", "www", "docs"]}
+    ]"#;
+
+    #[test]
+    fn resolve_links_of_base_product() {
+        let items = parse_items(LINKS_JSON, false).unwrap();
+        if let InputItem::Base(b) = &items[0] {
+            let p = b.to_product();
+            let labels = p.links.iter().map(|l| l.label.as_str()).collect::<Vec<_>>();
+            // `docs` has no URL to derive, hence it is dropped.
+            assert_eq!(labels, vec!["logo", "registry", "sbom", "repository", "www"]);
+            assert_eq!(
+                p.links[2].url,
+                "https://api.github.com/repos/tamada/fauxrest/dependency-graph/sbom"
+            );
+            assert_eq!(p.links[3].url, "https://github.com/tamada/fauxrest");
+            assert_eq!(p.links[4].url, "https://tamada.github.io/fauxrest");
+        } else {
+            panic!("expected a base product");
+        }
+    }
+
+    #[test]
+    fn overrides_replace_the_whole_links() {
+        let json = r#"[{"owner": "tamada", "name": "pick-a-boo",
+            "overrides": {"links": [{"label": "registry", "url": "https://crates.io/crates/pick-a-boo"}]},
+            "links": ["www", "repository"]}]"#;
+        let items = parse_items(json, false).unwrap();
+        if let InputItem::Base(b) = &items[0] {
+            let p = b.to_product();
+            assert_eq!(p.links.len(), 1);
+            assert_eq!(p.links[0].label, "registry");
+            assert_eq!(p.links[0].url, "https://crates.io/crates/pick-a-boo");
+        } else {
+            panic!("expected a base product");
+        }
+    }
+
+    /// Builds a [`RepoDetail`] carrying the URLs reported by GitHub.
+    fn repo_detail(homepage_url: &str) -> RepoDetail {
+        let json = format!(
+            r#"{{"name":"totebag","owner":{{"login":"tamada"}},
+                "homepageUrl":{},
+                "url":"https://github.com/tamada/totebag-renamed",
+                "createdAt":"2024-01-01T00:00:00Z"}}"#,
+            serde_json::to_string(homepage_url).unwrap()
+        );
+        serde_json::from_str(&json).unwrap()
+    }
+
+    #[test]
+    fn fetched_urls_win_over_the_derived_ones() {
+        let links = vec![
+            LinkSpec::Type("www".to_string()),
+            LinkSpec::Type("repository".to_string()),
+            LinkSpec::Type("sbom".to_string()),
+        ];
+        let p = build_product(
+            repo_detail("https://totebag.example.com"),
+            None,
+            Map::new(),
+            HashMap::new(),
+            Vec::new(),
+            None,
+            &links,
+        );
+        assert_eq!(p.links[0].url, "https://totebag.example.com");
+        // the repository may have been renamed, so the fetched URL is used.
+        assert_eq!(p.links[1].url, "https://github.com/tamada/totebag-renamed");
+        // GitHub does not report the SBOM URL, hence it stays derived.
+        assert_eq!(
+            p.links[2].url,
+            "https://api.github.com/repos/tamada/totebag/dependency-graph/sbom"
+        );
+    }
+
+    #[test]
+    fn blank_homepage_falls_back_to_the_derived_url() {
+        let links = vec![LinkSpec::Type("www".to_string())];
+        let p = build_product(
+            repo_detail("   "),
+            None,
+            Map::new(),
+            HashMap::new(),
+            Vec::new(),
+            None,
+            &links,
+        );
+        assert_eq!(p.links[0].url, "https://tamada.github.io/totebag");
+    }
+
+    #[test]
+    fn explicit_link_wins_over_the_fetched_url() {
+        let links = vec![LinkSpec::Link(Link {
+            label: "www".to_string(),
+            url: "https://crates.io/crates/totebag".to_string(),
+        })];
+        let p = build_product(
+            repo_detail("https://totebag.example.com"),
+            None,
+            Map::new(),
+            HashMap::new(),
+            Vec::new(),
+            None,
+            &links,
+        );
+        assert_eq!(p.links[0].url, "https://crates.io/crates/totebag");
     }
 
     #[test]
