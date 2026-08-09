@@ -45,8 +45,6 @@ jobs:
           GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
           # obtain the UID and GID of the container to avoid permission issues when creating files
-          CONTAINER_UID=$(docker run --rm --entrypoint id quay.io/tama5/fauxrest:latest -u)
-          CONTAINER_GID=$(docker run --rm --entrypoint id quay.io/tama5/fauxrest:latest -g)
           for i in assets/*.pkl ; do
               pkl eval -f json -o data/$(basename $i .pkl).json $i
           done
@@ -54,12 +52,7 @@ jobs:
           cargo run -- --pretty --base-project-json data/base-products.json > data/products.json
 
           mkdir docs
-          sudo chown -R $CONTAINER_UID:$CONTAINER_GID docs
-          docker run -v $PWD:/opt quay.io/tama5/fauxrest:latest --dest docs data
-
-      - name: Restore the directory permissions
-        if: always()
-        run: sudo chown -R $(id -u):$(id -g) docs
+          docker run --user $(id -u):$(id -g) -v $PWD:/opt quay.io/tama5/fauxrest:latest --dest docs data
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
