@@ -66,6 +66,17 @@ products: Listing<ProductBase> = new {
     }
     new {
         owner = "tamada"
+        name = "homebrew-tap"
+        links = new {
+            "repository"
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/homebrew-tap.svg"
+            }
+        }
+    }
+    new {
+        owner = "tamada"
         name = "fauxrest"
         links = new {
             new Link {
@@ -98,6 +109,10 @@ products: Listing<ProductBase> = new {
             new Link {
                 label = "registry"
                 url = "https://crates.io/crates/pick-a-boo"
+            }
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/pick-a-boo.png"
             }
             "sbom" "repository"
         }
@@ -171,6 +186,10 @@ products: Listing<ProductBase> = new {
                 label = "registry"
                 url = "https://crates.io/crates/gixor"
             }
+            new Link {
+                label = "container"
+                url = "https://quay.io/repository/tama5/gixor"
+            }
             "sbom" "repository" "www"
         }
     }
@@ -189,6 +208,10 @@ products: Listing<ProductBase> = new {
             new Link {
                 label = "registry"
                 url = "https://crates.io/crates/totebag"
+            }
+            new Link {
+                label = "container"
+                url = "https://ghcr.io/tamada/totebag"
             }
             "sbom" "repository" "www"
         }
@@ -209,6 +232,10 @@ products: Listing<ProductBase> = new {
                 label = "registry"
                 url = "https://crates.io/crates/btmeister"
             }
+            new Link {
+                label = "container"
+                url = "https://ghcr.io/tamada/btmeister"
+            }
             "sbom" "repository" "www"
         }
     }
@@ -227,6 +254,10 @@ products: Listing<ProductBase> = new {
             new Link {
                 label = "registry"
                 url = "https://crates.io/crates/heatman"
+            }
+            new Link {
+                label = "container"
+                url = "https://ghcr.io/tamada/heatman"
             }
             "sbom" "repository" "www"
         }
@@ -274,7 +305,7 @@ products: Listing<ProductBase> = new {
         links = new {
             new Link {
                 label = "logo"
-                url = "https://tamada.github.io/api/assets/sibling.svg"
+                url = "https://tamada.github.io/api/assets/sibling.png"
             }
             new Link {
                 label = "docs"
