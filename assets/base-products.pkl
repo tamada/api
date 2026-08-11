@@ -71,7 +71,7 @@ products: Listing<ProductBase> = new {
             "repository"
             new Link {
                 label = "logo"
-                url = "https://tamada.github.io/api/assets/homebrew-tap.svg"
+                url = "https://tamada.github.io/api/assets/homebrew-tap.jpg"
             }
         }
     }
