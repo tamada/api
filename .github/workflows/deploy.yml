@@ -119,6 +119,7 @@ jobs:
       - name: Trigger Homebrew Tap Workflow
         run: |
           gh workflow run "update-formula.yaml" \
-             --repo "tamada/homebrew-tap"
+             --repo "tamada/homebrew-tap" \
+             -f "repo=${{ github.event.inputs.repo }}"
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
