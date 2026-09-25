@@ -77,6 +77,21 @@ products: Listing<ProductBase> = new {
     }
     new {
         owner = "tamada"
+        name = "mosty"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/mosty.svg"
+            }
+            new Link {
+                label = "container"
+                url = "https://quay.io/repository/tama5/mosty"
+            }
+            "sbom" "repository" "www"
+        }
+    }
+    new {
+        owner = "tamada"
         name = "fauxrest"
         links = new {
             new Link {

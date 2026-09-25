@@ -85,6 +85,13 @@ snss = new {
   }
   new {
     category = "developer"
+    label = "Quay.io"
+    value = "tama5"
+    image = "https://img.shields.io/badge/quay.io-tama5-EE0000?logo=redhat&logoColor=white"
+    href = "https://quay.io/user/tama5/"
+  }
+  new {
+    category = "developer"
     label = "Gitea"
     value = "tamada"
     image = "https://img.shields.io/badge/Gitea-tamada-609926?logo=gitea"

@@ -2,7 +2,7 @@
 
 This repository provides psuede REST API.
 
-[![Powered by](https://img.shields.io/badge/Powered_by-FauxREST-brightgreen)](https://github.com/tamada/fauxrest).
+[![Powered by: FauxREST](https://tamada.github.io/fauxrest/powered-by.svg)](https://github.com/tamada/fauxrest)
 
 ## Product Merger
 
