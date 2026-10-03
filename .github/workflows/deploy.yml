@@ -146,11 +146,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # Fire the workflow for the other repository using the generated token
+      # Fire the workflow for the other repository using the generated token.
+      # --ref is omitted on purpose, so that the dispatch always follows the default
+      # branch of the target repository and survives a branch rename.
       - name: Trigger Homepage Workflow
         run: |
           gh workflow run "publish_site.yaml" \
-             --repo "tamada/tamada.github.io" \
-             --ref main
+             --repo "tamada/tamada.github.io"
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
