@@ -147,10 +147,10 @@ jobs:
         uses: actions/checkout@v6
 
       # Fire the workflow for the other repository using the generated token
-      - name: Trigger Homebrew Tap Workflow
+      - name: Trigger Homepage Workflow
         run: |
           gh workflow run "publish_site.yaml" \
              --repo "tamada/tamada.github.io" \
-             --ref trunk
+             --ref main
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
