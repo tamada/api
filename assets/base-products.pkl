@@ -10,11 +10,17 @@ class License {
     url: String|Null
 }
 
-typealias LinkType = "www" | "docs" | "logo" | "repository" | "sbom" | "registry" | "container"
+typealias LinkType = "www" | "docs" | "logo" | "repository" | "sbom" | "registry" | "container" | "artifact"
 
 class Link {
     label: String|LinkType
-    url: String
+    // The page a human opens. It may be left out for the things that are only
+    // pulled and have no page of their own; `ref` is then required.
+    url: (String|Null)(this != null || ref != null) = null
+    // The pull reference of an OCI artifact or a container image, e.g.
+    // "quay.io/tama5/pelicode-db:v1": what `oras pull` or `docker pull` takes,
+    // as opposed to `url`, which is the page to open. Omitted when null.
+    ref: String|Null = null
 }
 
 class Product {
@@ -53,6 +59,34 @@ class ProductBase {
 }
 
 products: Listing<ProductBase> = new {
+    new {
+        owner = "tamada"
+        name = "pelicode"
+        links = new {
+            new Link {
+                label = "logo"
+                url = "https://tamada.github.io/api/assets/pelicode.jpg"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/pelicode"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/pelicode/latest"
+            }
+            new Link {
+                label = "container"
+                url = "https://quay.io/repository/tama5/pelicode"
+            }
+            new Link {
+                label = "artifact"
+                url = "https://quay.io/repository/tama5/pelicode-db"
+                ref = "quay.io/tama5/pelicode-db:v1"
+            }
+            "sbom" "repository" "www"
+        }
+    }
     new {
         owner = "tamada"
         name = "jj-cheat-sheet"
@@ -139,6 +173,14 @@ products: Listing<ProductBase> = new {
             new Link {
                 label = "logo"
                 url = "https://tamada.github.io/api/assets/oinkie.png"
+            }
+            new Link {
+                label = "registry"
+                url = "https://crates.io/crates/oinkie"
+            }
+            new Link {
+                label = "docs"
+                url = "https://docs.rs/oinkie/latest"
             }
             new Link {
                 label = "container"

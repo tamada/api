@@ -53,7 +53,19 @@ pub struct License {
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Link {
     pub label: String,
-    pub url: String,
+    /// The page to open in a browser. It is absent only for the links that are
+    /// pulled instead of opened and have no page of their own; `reference` is
+    /// then set.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub url: Option<String>,
+    /// The pull reference of an OCI artifact or a container image, e.g.
+    /// `quay.io/tama5/pelicode-db:v1`, given as `ref` in the JSON: what
+    /// `oras pull` or `docker pull` takes, as opposed to `url`, which is the
+    /// page to open. A derived link never has one. Both fields are omitted
+    /// when absent, so the links of the products that use neither are left
+    /// untouched.
+    #[serde(rename = "ref", default, skip_serializing_if = "Option::is_none")]
+    pub reference: Option<String>,
 }
 
 /// An element of `links` in the input JSON: either a full [`Link`], or a bare
@@ -225,8 +237,8 @@ impl FetchedUrls {
 /// `repository` take the value fetched from GitHub, falling back to the URL
 /// derived from `owner` and `name`; a bare `sbom` is always derived, since
 /// GitHub does not report it. The types that cannot be derived (`logo`,
-/// `docs`, `registry`, `container`) must be given as a link with their own
-/// URL; otherwise they are dropped with a warning.
+/// `docs`, `registry`, `container`, `artifact`) must be given as a link with
+/// their own URL; otherwise they are dropped with a warning.
 fn resolve_links(
     specs: &[LinkSpec],
     owner: &str,
@@ -236,9 +248,20 @@ fn resolve_links(
     specs
         .iter()
         .filter_map(|spec| match spec {
+            LinkSpec::Link(link) if link.url.is_none() && link.reference.is_none() => {
+                log::warn!(
+                    "{}/{}: links.{} has neither url nor ref, ignored",
+                    owner, name, link.label
+                );
+                None
+            }
             LinkSpec::Link(link) => Some(link.clone()),
             LinkSpec::Type(label) => match derive_link_url(label, owner, name, fetched) {
-                Some(url) => Some(Link { label: label.clone(), url }),
+                Some(url) => Some(Link {
+                    label: label.clone(),
+                    url: Some(url),
+                    reference: None,
+                }),
                 None => {
                     log::warn!(
                         "{}/{}: links.{} has no URL to derive, ignored",
@@ -278,7 +301,11 @@ fn link_specs(logo: &Option<String>, links: &[LinkSpec]) -> Vec<LinkSpec> {
     });
     match logo {
         Some(url) if !has_logo => {
-            let logo = LinkSpec::Link(Link { label: "logo".to_string(), url: url.clone() });
+            let logo = LinkSpec::Link(Link {
+                label: "logo".to_string(),
+                url: Some(url.clone()),
+                reference: None,
+            });
             std::iter::once(logo).chain(links.iter().cloned()).collect()
         }
         _ => links.to_vec(),
@@ -501,7 +528,7 @@ mod tests {
         if let InputItem::Base(b) = &items[0] {
             let p = b.to_product();
             let links = p.links.iter()
-                .map(|l| (l.label.as_str(), l.url.as_str()))
+                .map(|l| (l.label.as_str(), l.url.as_deref().unwrap_or("")))
                 .collect::<Vec<_>>();
             // the `logo` key of the base product becomes the first link, and
             // the bare types are derived from the owner and the name.
@@ -550,11 +577,90 @@ mod tests {
             // `docs` has no URL to derive, hence it is dropped.
             assert_eq!(labels, vec!["logo", "registry", "sbom", "repository", "www"]);
             assert_eq!(
-                p.links[2].url,
-                "https://api.github.com/repos/tamada/fauxrest/dependency-graph/sbom"
+                p.links[2].url.as_deref(), Some("https://api.github.com/repos/tamada/fauxrest/dependency-graph/sbom")
             );
-            assert_eq!(p.links[3].url, "https://github.com/tamada/fauxrest");
-            assert_eq!(p.links[4].url, "https://tamada.github.io/fauxrest");
+            assert_eq!(p.links[3].url.as_deref(), Some("https://github.com/tamada/fauxrest"));
+            assert_eq!(p.links[4].url.as_deref(), Some("https://tamada.github.io/fauxrest"));
+        } else {
+            panic!("expected a base product");
+        }
+    }
+
+    #[test]
+    fn pull_reference_survives_and_stays_optional() {
+        let json = r#"[{"owner": "tamada", "name": "pelicode",
+            "links": [{"label": "artifact",
+                       "url": "https://quay.io/repository/tama5/pelicode-db",
+                       "ref": "quay.io/tama5/pelicode-db:v1"},
+                      {"label": "container",
+                       "url": "https://quay.io/repository/tama5/pelicode"},
+                      "repository"]}]"#;
+        let items = parse_items(json, false).unwrap();
+        if let InputItem::Base(b) = &items[0] {
+            let p = b.to_product();
+            assert_eq!(
+                p.links[0].reference.as_deref(),
+                Some("quay.io/tama5/pelicode-db:v1")
+            );
+            // The links without a pull reference keep none, and a derived one
+            // never gets one.
+            assert_eq!(p.links[1].reference, None);
+            assert_eq!(p.links[2].reference, None);
+
+            // `ref` is written only where it is present, so the output of the
+            // products without one is left untouched.
+            let out = serde_json::to_string(&p.links).unwrap();
+            assert_eq!(out.matches(r#""ref":"#).count(), 1);
+        } else {
+            panic!("expected a base product");
+        }
+    }
+
+    #[test]
+    fn artifact_may_carry_the_reference_alone() {
+        let json = r#"[{"owner": "tamada", "name": "pelicode",
+            "links": [{"label": "artifact", "ref": "quay.io/tama5/pelicode-db:v1"},
+                      "repository"]}]"#;
+        let items = parse_items(json, false).unwrap();
+        if let InputItem::Base(b) = &items[0] {
+            let p = b.to_product();
+            // An artifact that is only pulled has no page to open.
+            assert_eq!(p.links[0].url, None);
+            assert_eq!(
+                p.links[0].reference.as_deref(),
+                Some("quay.io/tama5/pelicode-db:v1")
+            );
+            let out = serde_json::to_string(&p.links[0]).unwrap();
+            assert_eq!(out, r#"{"label":"artifact","ref":"quay.io/tama5/pelicode-db:v1"}"#);
+        } else {
+            panic!("expected a base product");
+        }
+    }
+
+    #[test]
+    fn link_with_neither_url_nor_ref_is_dropped() {
+        let json = r#"[{"owner": "tamada", "name": "pelicode",
+            "links": [{"label": "artifact"}, "repository"]}]"#;
+        let items = parse_items(json, false).unwrap();
+        if let InputItem::Base(b) = &items[0] {
+            let p = b.to_product();
+            let labels = p.links.iter().map(|l| l.label.as_str()).collect::<Vec<_>>();
+            assert_eq!(labels, vec!["repository"]);
+        } else {
+            panic!("expected a base product");
+        }
+    }
+
+    #[test]
+    fn bare_artifact_is_dropped() {
+        let json = r#"[{"owner": "tamada", "name": "pelicode",
+            "links": ["artifact", "repository"]}]"#;
+        let items = parse_items(json, false).unwrap();
+        if let InputItem::Base(b) = &items[0] {
+            let p = b.to_product();
+            // `artifact` has no URL to derive, hence it is dropped like `docs`.
+            let labels = p.links.iter().map(|l| l.label.as_str()).collect::<Vec<_>>();
+            assert_eq!(labels, vec!["repository"]);
         } else {
             panic!("expected a base product");
         }
@@ -570,7 +676,7 @@ mod tests {
             let p = b.to_product();
             assert_eq!(p.links.len(), 1);
             assert_eq!(p.links[0].label, "registry");
-            assert_eq!(p.links[0].url, "https://crates.io/crates/pick-a-boo");
+            assert_eq!(p.links[0].url.as_deref(), Some("https://crates.io/crates/pick-a-boo"));
         } else {
             panic!("expected a base product");
         }
@@ -604,13 +710,12 @@ mod tests {
             None,
             &links,
         );
-        assert_eq!(p.links[0].url, "https://totebag.example.com");
+        assert_eq!(p.links[0].url.as_deref(), Some("https://totebag.example.com"));
         // the repository may have been renamed, so the fetched URL is used.
-        assert_eq!(p.links[1].url, "https://github.com/tamada/totebag-renamed");
+        assert_eq!(p.links[1].url.as_deref(), Some("https://github.com/tamada/totebag-renamed"));
         // GitHub does not report the SBOM URL, hence it stays derived.
         assert_eq!(
-            p.links[2].url,
-            "https://api.github.com/repos/tamada/totebag/dependency-graph/sbom"
+            p.links[2].url.as_deref(), Some("https://api.github.com/repos/tamada/totebag/dependency-graph/sbom")
         );
     }
 
@@ -626,14 +731,15 @@ mod tests {
             None,
             &links,
         );
-        assert_eq!(p.links[0].url, "https://tamada.github.io/totebag");
+        assert_eq!(p.links[0].url.as_deref(), Some("https://tamada.github.io/totebag"));
     }
 
     #[test]
     fn explicit_link_wins_over_the_fetched_url() {
         let links = vec![LinkSpec::Link(Link {
             label: "www".to_string(),
-            url: "https://crates.io/crates/totebag".to_string(),
+            url: Some("https://crates.io/crates/totebag".to_string()),
+            reference: None,
         })];
         let p = build_product(
             repo_detail("https://totebag.example.com"),
@@ -644,7 +750,7 @@ mod tests {
             None,
             &links,
         );
-        assert_eq!(p.links[0].url, "https://crates.io/crates/totebag");
+        assert_eq!(p.links[0].url.as_deref(), Some("https://crates.io/crates/totebag"));
     }
 
     #[test]

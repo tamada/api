@@ -4,6 +4,10 @@ This repository provides psuede REST API.
 
 [![Powered by: FauxREST](https://tamada.github.io/fauxrest/powered-by.svg)](https://github.com/tamada/fauxrest)
 
+Operational notes for the maintainer, in Japanese (how a notification from a product
+repository is handled, and how to register a new product):
+[.github/docs/ja/README.md](.github/docs/ja/README.md).
+
 ## Product Merger
 
 The `product-merger` is a CLI tool that reads the base products information from JSON file, and 
@@ -60,12 +64,21 @@ OUTPUT
    | `repository` | `url` of the repository, or `https://github.com/<owner>/<name>` when GitHub is not accessed |
    | `sbom` | `https://api.github.com/repos/<owner>/<name>/dependency-graph/sbom` (GitHub does not report it) |
 
-   The other types (`logo`, `docs`, `registry`, `container`) have nothing to
-   fill in, so they must be written as an object with their own `url`; a bare
-   one is logged and dropped. Writing a type as an object also pins its URL:
-   `{"label": "www", "url": ...}` is kept as it is instead of taking
-   `homepageUrl`. The `logo` key of a base product is a shorthand, and becomes
-   the first `logo` link of the output.
+   The other types (`logo`, `docs`, `registry`, `container`, `artifact`) have
+   nothing to fill in, so they must be written as an object with their own
+   `url`; a bare one is logged and dropped. Writing a type as an object also
+   pins its URL: `{"label": "www", "url": ...}` is kept as it is instead of
+   taking `homepageUrl`. The `logo` key of a base product is a shorthand, and
+   becomes the first `logo` link of the output.
+
+   A link may also carry `ref`, the pull reference of an OCI artifact or a
+   container image, e.g.
+   `{"label": "artifact", "ref": "quay.io/tama5/pelicode-db:v1"}`. It is what
+   `oras pull` or `docker pull` takes, as opposed to `url`, which is the page
+   to open in a browser. The things that are only pulled have no page of their
+   own, hence `url` is optional on a link that has a `ref`; a link carrying
+   neither is logged and dropped. Both keys are written only when present, so
+   the links that use neither are unchanged.
 6. Prints the resultant array of the full products in JSON. Every URL lives
    in `links`: the output has no `logo`, `url`, `repository`, nor `sbom` key
    of its own. It contains `last_updated`, therefore the next run updates
