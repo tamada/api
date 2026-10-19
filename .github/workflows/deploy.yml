@@ -170,7 +170,7 @@ jobs:
           else
             cache_opts="--cache $RUNNER_TEMP/products-cache.json"
           fi
-          cargo run -- --pretty --base-project-json $cache_opts data/base-products.json > data/products.json
+          cargo run --release -- --pretty --base-project-json $cache_opts data/base-products.json > data/products.json
 
           mkdir docs
           # obtain the UID and GID of the container to avoid permission issues when creating files
