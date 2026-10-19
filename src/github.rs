@@ -318,6 +318,29 @@ mod tests {
         s.parse().unwrap()
     }
 
+    /// The detail query must ask for nothing that needs more than reading a
+    /// public repository. `collaborators` needs push access, and one such field
+    /// makes the whole request fail with "Resource not accessible by
+    /// integration" under the token of a workflow run -- which costs every
+    /// product its refresh while the output still looks fine, since the cached
+    /// values are kept. The answer was never read either way.
+    #[test]
+    fn the_detail_query_asks_for_no_privileged_field() -> Result<()> {
+        let query = load_query("queries/products.graphql")?;
+        for field in ["collaborators", "viewerPermission", "deployKeys", "branchProtectionRules"] {
+            assert!(
+                !query.contains(&format!("{} {{", field)),
+                "queries/products.graphql asks for {}, which needs more than public read access",
+                field
+            );
+        }
+        // the fields `RepoDetail` does read are still there.
+        for field in ["homepageUrl", "pushedAt", "updatedAt", "licenseInfo", "releases", "repositoryTopics"] {
+            assert!(query.contains(field), "queries/products.graphql lost {}", field);
+        }
+        Ok(())
+    }
+
     #[test]
     fn last_modified_takes_the_later_timestamp() {
         let updated = at("2026-10-12T00:13:20Z");
