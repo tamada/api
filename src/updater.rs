@@ -11,10 +11,10 @@ use crate::product::{
 /// Updates all the given items and returns the list of full products.
 ///
 /// First, this function fetches the last modified time of the repositories of
-/// each owner in one request (see [`fetch_modified_map`]). Then, it fetches the
-/// detail (`queries/products.graphql`) only for the items that have no usable
-/// cache entry, or whose repository has been modified since the time the cache
-/// reports.
+/// each owner in one request (see [`github::fetch_last_modified`]). Then, it
+/// fetches the detail (`queries/products.graphql`) only for the items that have
+/// no usable cache entry, or whose repository has been modified since the time
+/// the cache reports.
 ///
 /// The set of the products and their configuration come from the input alone:
 /// `cache` only spares the detail query for the products that are unchanged,
