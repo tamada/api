@@ -192,6 +192,11 @@ jobs:
   notify-to-homepage:
     runs-on: ubuntu-latest
     needs: build-and-deploy
+    # build-and-deploy runs with always(), hence it succeeds even when update-homebrew-tap
+    # failed. Without always() here, GitHub skips this job over that transitive failure and
+    # the homepage is never told about a deploy that did happen. The deploy itself is still
+    # required: a failed build-and-deploy published nothing to notify about.
+    if: ${{ always() && !cancelled() && needs.build-and-deploy.result == 'success' }}
     steps:
       # Generate a one-time token using the private key
       - name: Generate Token
