@@ -56,10 +56,14 @@ OUTPUT
    from which only the values that come from GitHub are reused, and only for
    the repositories that have not been modified since.
 3. Obtains the last modified time of the repositories of each owner in one
-   request: `gh api graphql` with `assets/queries/product_list.graphql`
-   (paginated), falling back to a single request that asks for the configured
-   repositories by name when the token is not allowed to list the
-   repositories of the owner.
+   `gh api graphql` request, which names the configured repositories (one
+   aliased `repository` field each) instead of listing the repositories of
+   the owner. A `user(login:)` listing would reach well beyond the products:
+   its default affiliations cover every repository the user merely
+   collaborates on, so it also names repositories owned by other people and
+   by organizations, which is enough for an organization policy the token
+   does not satisfy to refuse the whole request. Naming the repositories
+   needs no access beyond the one the detail query below already has.
 
    The last modified time is the **later of `updatedAt` and `pushedAt`**.
    Neither is above the other: `updatedAt` also follows the changes that are

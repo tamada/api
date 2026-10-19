@@ -152,9 +152,15 @@ jobs:
             echo '[]' > "$RUNNER_TEMP/products-cache.json"
           }
 
+      # product-merger only reads public repositories, by name, so the token of the run
+      # is enough and no personal access token has to be kept in a secret. Whether
+      # GITHUB_TOKEN may read another repository's public data over GraphQL cannot be
+      # checked locally: if this step reports that it cannot, the GitHub App token the
+      # other jobs generate (create-github-app-token with the products listed under
+      # repositories:) is the next thing to try.
       - name: Build API
         env:
-          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FULL_REFRESH: ${{ github.event.inputs.full_refresh }}
         run: |
           cargo build --release

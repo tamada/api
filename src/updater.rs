@@ -35,15 +35,11 @@ type ModifiedMap = HashMap<String, HashMap<String, DateTime<Utc>>>;
 
 /// Collects the last modified time of the repository of every item, by owner.
 ///
-/// The whole list of the repositories of an owner is asked for first, which is
-/// one request however many products the owner has. A token an organization
-/// policy keeps from listing a user's repositories is refused that request
-/// outright, so the configured repositories are then asked for by name
-/// instead: that is one request as well, and it needs no access beyond the one
-/// the detail query already has.
+/// The repositories are asked for by name, one request per owner however many
+/// products that owner has (see [`github::fetch_last_modified`]).
 ///
-/// An owner whose timestamps cannot be obtained at all is simply left out of
-/// the map, which makes every product of that owner be fetched.
+/// An owner whose timestamps cannot be obtained is simply left out of the map,
+/// which makes every product of that owner be fetched.
 fn fetch_modified_map(items: &[InputItem]) -> ModifiedMap {
     let mut names: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for item in items.iter().filter(|i| i.service() == "github") {
@@ -54,7 +50,7 @@ fn fetch_modified_map(items: &[InputItem]) -> ModifiedMap {
     }
     let mut map = ModifiedMap::new();
     for (owner, names) in names {
-        match modified_times(&owner, &names) {
+        match github::fetch_last_modified(&owner, &names) {
             Ok(m) => {
                 log::info!("{}: {} repositories reported their last modified time", owner, m.len());
                 map.insert(owner, m);
@@ -66,19 +62,6 @@ fn fetch_modified_map(items: &[InputItem]) -> ModifiedMap {
         }
     }
     map
-}
-
-fn modified_times(owner: &str, names: &[String]) -> crate::Result<HashMap<String, DateTime<Utc>>> {
-    match github::list_repositories(owner) {
-        Ok(m) => Ok(m),
-        Err(e) => {
-            log::warn!(
-                "{}: failed to list the repositories ({}), hence the configured ones are asked for by name",
-                owner, e
-            );
-            github::fetch_last_modified(owner, names)
-        }
-    }
 }
 
 fn update_item(item: InputItem, modified_map: &ModifiedMap, cache: &Cache) -> Product {
@@ -165,6 +148,9 @@ fn update_item(item: InputItem, modified_map: &ModifiedMap, cache: &Cache) -> Pr
 /// (see [`github::last_modified_of`]); comparing two different fields would
 /// skip a repository forever whenever the stored one happens to run ahead.
 /// An absent timestamp on either side means the product has to be fetched.
+///
+/// `last_modified` being the timestamp of the repository as it is now, and
+/// `last_updated` the one stored when its information was last fetched.
 fn is_up_to_date(last_updated: Option<DateTime<Utc>>, last_modified: Option<DateTime<Utc>>) -> bool {
     match (last_updated, last_modified) {
         (Some(last_updated), Some(last_modified)) => last_updated >= last_modified,

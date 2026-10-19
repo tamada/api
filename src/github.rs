@@ -67,35 +67,21 @@ fn run_gh_output(args: &[String]) -> Result<(bool, String, String)> {
     ))
 }
 
-// ---------- list query (queries/product_list.graphql) ----------
+// ---------- timestamps of the named repositories ----------
 
 #[derive(Deserialize)]
-struct ListPage {
-    data: ListData,
-}
-
-#[derive(Deserialize)]
-struct ListData {
-    user: ListUser,
-}
-
-#[derive(Deserialize)]
-struct ListUser {
-    repositories: ListRepositories,
-}
-
-#[derive(Deserialize)]
-struct ListRepositories {
-    nodes: Vec<Option<ListNode>>,
-}
-
-#[derive(Deserialize)]
-struct ListNode {
+struct TimestampNode {
     name: String,
     #[serde(rename = "updatedAt", default)]
     updated_at: Option<DateTime<Utc>>,
     #[serde(rename = "pushedAt", default)]
     pushed_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Deserialize)]
+struct TimestampPage {
+    #[serde(default)]
+    data: HashMap<String, Option<TimestampNode>>,
 }
 
 /// The later of the two timestamps, ignoring the absent ones.
@@ -104,7 +90,7 @@ struct ListNode {
 /// changes that are not a push (the description, the topics, ...), while
 /// `pushedAt` is the only one that follows a push to a non-default branch.
 /// Neither is therefore above the other, and a repository is considered
-/// modified at the later of the two. Both the listing and the detail reduce
+/// modified at the later of the two. Both this query and the detail reduce
 /// their timestamps this way, so that the two sides of the up-to-date check
 /// compare the very same value.
 pub fn last_modified_of(
@@ -117,53 +103,21 @@ pub fn last_modified_of(
     }
 }
 
-/// Fetches the map of the repository names to their last modified time
-/// (see [`last_modified_of`]) of the given owner, by the paginated GraphQL
-/// query `queries/product_list.graphql`.
-pub fn list_repositories<S: AsRef<str>>(owner: S) -> Result<HashMap<String, DateTime<Utc>>> {
-    let query = load_query("queries/product_list.graphql")?;
-    let args = vec![
-        "api".to_string(),
-        "graphql".to_string(),
-        "--paginate".to_string(),
-        "--slurp".to_string(),
-        "-F".to_string(),
-        format!("owner={}", owner.as_ref()),
-        "-f".to_string(),
-        format!("query={}", query),
-    ];
-    let out = run_gh(&args)?;
-    parse_list(&out)
-}
-
-fn parse_list(json: &str) -> Result<HashMap<String, DateTime<Utc>>> {
-    let pages: Vec<ListPage> = serde_json::from_str(json).map_err(Error::Parse)?;
-    Ok(pages
-        .into_iter()
-        .flat_map(|p| p.data.user.repositories.nodes)
-        .flatten()
-        .filter_map(|n| last_modified_of(n.updated_at, n.pushed_at).map(|t| (n.name, t)))
-        .collect())
-}
-
-// ---------- timestamps of the named repositories ----------
-
-#[derive(Deserialize)]
-struct NamedPage {
-    #[serde(default)]
-    data: HashMap<String, Option<ListNode>>,
-}
 
 /// Fetches the last modified time (see [`last_modified_of`]) of the named
 /// repositories of the given owner, in a single GraphQL request that aliases
 /// one `repository` field per name.
 ///
-/// This is the fallback for [`list_repositories`], whose `user(login:)` query
-/// asks about every repository the token can see: an organization policy the
-/// token does not satisfy refuses such a request outright, even though the
-/// products themselves are public and their detail is fetched without trouble.
-/// Asking for the configured repositories by name touches nothing else, hence
-/// it needs the very same access the detail query already has.
+/// Only the configured repositories are asked for, which is why this is the
+/// one way the timestamps are obtained. Listing the repositories of the owner
+/// instead (`user(login:)`) reaches far beyond them: its default affiliations
+/// cover every repository the user merely collaborates on, so the request also
+/// names repositories owned by other people and by organizations. That is
+/// enough for an organization policy the token does not satisfy to refuse the
+/// whole request, even though every product is public and its detail is
+/// fetched without trouble. Naming the repositories touches nothing but them,
+/// hence it needs no access beyond the one the detail query already has, and
+/// it reads one page instead of three.
 ///
 /// A name that cannot be read (a renamed or a deleted repository) only leaves
 /// its own entry out of the map, which makes that product be fetched.
@@ -219,7 +173,7 @@ fn graphql_string(value: &str) -> String {
 }
 
 fn parse_last_modified(json: &str) -> Result<HashMap<String, DateTime<Utc>>> {
-    let page: NamedPage = serde_json::from_str(json).map_err(Error::Parse)?;
+    let page: TimestampPage = serde_json::from_str(json).map_err(Error::Parse)?;
     Ok(page
         .data
         .into_values()
@@ -414,28 +368,6 @@ mod tests {
         assert_eq!(map.get("9rules").copied(), Some(at("2026-07-20T06:41:06Z")));
         // a repository that could not be read is simply absent.
         assert!(!map.contains_key("r2"));
-        Ok(())
-    }
-
-    #[test]
-    fn parse_list_pages() -> Result<()> {
-        let json = r#"[{"data":{"user":{"repositories":{"totalCount":3,"nodes":[
-            {"name":"fauxrest","description":null,"isArchived":false,"isPrivate":false,
-             "createdAt":"2025-05-01T00:00:00Z","updatedAt":"2026-06-30T12:43:00Z",
-             "pushedAt":"2026-06-30T12:00:00Z"},
-            {"name":"9rules","description":null,"isArchived":false,"isPrivate":false,
-             "createdAt":"2024-01-01T00:00:00Z","updatedAt":"2025-08-27T12:10:06Z",
-             "pushedAt":"2026-07-20T06:41:06Z"},
-            {"name":"totebag","description":"archiver","isArchived":false,"isPrivate":false,
-             "createdAt":"2024-01-01T00:00:00Z","updatedAt":"2026-01-15T08:00:00Z",
-             "pushedAt":null}
-        ],"pageInfo":{"endCursor":"abc","hasNextPage":false}}}}}]"#;
-        let map = parse_list(json)?;
-        assert_eq!(map.len(), 3);
-        // the listing reports the later of `updatedAt` and `pushedAt`.
-        assert_eq!(map.get("fauxrest").copied(), Some(at("2026-06-30T12:43:00Z")));
-        assert_eq!(map.get("9rules").copied(), Some(at("2026-07-20T06:41:06Z")));
-        assert_eq!(map.get("totebag").copied(), Some(at("2026-01-15T08:00:00Z")));
         Ok(())
     }
 
