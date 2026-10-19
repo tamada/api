@@ -285,6 +285,59 @@ repo でも通る。
 なお失敗しても出力が壊れないのは設計どおりで、このときも公開 API は18件のまま、
 4件はキャッシュの値（`description` も `links` も `releases` も）を保持していた。
 
+## Pages の設定に残っている branch source
+
+`gh api /repos/tamada/api/pages` は、workflow でデプロイしているのに branch source を
+記録したままになっている。
+
+```
+build_type = workflow
+source     = {"branch": "main", "path": "/"}
+```
+
+デプロイは `actions/upload-pages-artifact` と `actions/deploy-pages` を通るので
+**この source は使われていない**。ブランチから公開していた時代の残骸。
+
+### API では消せないので、もう触らないこと
+
+「source なし」という状態を API で表現する手段が無い。2026-10-20 に2通り試して
+どちらも失敗した（#10）。
+
+`build_type` だけ再送する手は、204 を返すが**完全な no-op**。読み直して差分ゼロだった。
+
+```sh
+gh api -X PUT /repos/tamada/api/pages -f build_type=workflow
+```
+
+サイトを削除して作り直す手は、**GitHub が既定値 `main` / `/` を自動で入れてくる**。
+source は空にならず、当時の `gh-pages` が `main` に変わっただけ。
+
+```sh
+gh api -X DELETE /repos/tamada/api/pages
+gh api -X POST /repos/tamada/api/pages -f build_type=workflow
+```
+
+`PUT`/`POST` の `source` は、送る場合は `branch` が必須。`null` で消せるのは `cname` だけ。
+
+**作り直しは代償が大きいので二度とやらないこと。** 実行した当日、公開 API は次の
+デプロイまで全面 404 になり、Pages のデプロイ履歴も失われた。その上で目的を達して
+いない。復旧には deploy.yml を手で回す必要がある。
+
+```sh
+gh workflow run deploy.yml --repo tamada/api -f repo=tamada/gixor -f update_brew=false -f full_refresh=true
+```
+
+`repo` は required なので何か渡さないといけないが、`tamada/api` 自身は
+`base-products.pkl` に未登録で warning が出るため、登録済みの名前を渡す。
+
+### build_type を legacy に切り替えないこと
+
+source が実在する `main` を指しているので、**`legacy` に戻すとリポジトリ root が
+Pages で配信される**（Rust のソースと `assets/`）。API ではない。
+
+作り直す前の source は改名済みの `gh-pages` を指していたので、ブランチに戻しても
+配信されるものが無く無害だった。いまはその安全弁が無い。
+
 ## ローカルで確認する
 
 [Justfile](../../../Justfile) にまとまっている。
