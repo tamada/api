@@ -92,14 +92,28 @@ warning は `Warn if the notified repository is not registered` ステップが�
    ```
 
 3. リンクの書き方に注意。**ベタ書き（bare）で URL が埋まるのは `www` `repository` `sbom`
-   の3つだけ。** `logo` `docs` `registry` `container` はベタ書きすると
+   の3つだけ。** `logo` `docs` `registry` `container` `artifact` はベタ書きすると
    「ログに出して捨てる」仕様なので、必ず `new Link { label = ...; url = ... }` の形で
    URL まで書く。`registry` は crates.io や npm、`container` は quay.io など、
    自分しか知らない情報なのでここは手で埋めるしかない。
-4. GitHub から取ってきた値を上書きしたいときは `overrides` を使う。`owner` と `name` は
+4. ORAS で引くもの（quay に置いたデータベースなど）は `artifact` に `ref` を書く。
+
+   ```pkl
+   new Link {
+       label = "artifact"
+       ref = "quay.io/tama5/pelicode-db:v1"
+   }
+   ```
+
+   `ref` は `oras pull` / `docker pull` に渡すもの、`url` はブラウザで開くページ。
+   **引くだけで開くページが無いものは `url` を省略できる**（`ref` があれば pkl の
+   制約を通る）。両方無いと pkl の型チェックで落ちる。`container` に quay のページ
+   （`url`）と pull 参照（`ref`）の両方を書くこともできる。`url` も `ref` も、
+   書いたときだけ出力に出るので、使っていないプロダクトの出力は変わらない。
+5. GitHub から取ってきた値を上書きしたいときは `overrides` を使う。`owner` と `name` は
    リポジトリの同定に使うので上書きできない。`overrides` は出力にも残り、毎回の更新で
    再適用される。
-5. コミットして `main` に push すれば、`push` トリガで再ビルド・再デプロイされる。
+6. コミットして `main` に push すれば、`push` トリガで再ビルド・再デプロイされる。
 
 ## ローカルで確認する
 
