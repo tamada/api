@@ -280,7 +280,7 @@ pub struct RepoDetail {
 
 impl RepoDetail {
     /// The time the repository was last modified (see [`last_modified_of`]),
-    /// comparable with the value reported by [`list_repositories`].
+    /// comparable with the value reported by [`fetch_last_modified`].
     pub fn last_modified(&self) -> Option<DateTime<Utc>> {
         last_modified_of(self.updated_at, self.pushed_at)
     }
