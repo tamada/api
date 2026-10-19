@@ -163,6 +163,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           FULL_REFRESH: ${{ github.event.inputs.full_refresh }}
+          MERGER_LOG: ${{ runner.temp }}/product-merger.log
         run: |
           cargo build --release
           if [ "$FULL_REFRESH" = "true" ]; then
@@ -170,11 +171,65 @@ jobs:
           else
             cache_opts="--cache $RUNNER_TEMP/products-cache.json"
           fi
-          cargo run --release -- --pretty --base-project-json $cache_opts data/base-products.json > data/products.json
+          # The log of product-merger is kept for the next step, which turns the failures
+          # of individual products into annotations, and echoed here afterwards so that
+          # this step still reads as the whole output of the build.
+          status=0
+          cargo run --release -- --pretty --base-project-json $cache_opts data/base-products.json \
+            > data/products.json 2> "$MERGER_LOG" || status=$?
+          cat "$MERGER_LOG" >&2
+          [ "$status" -eq 0 ] || exit "$status"
 
           mkdir docs
           # obtain the UID and GID of the container to avoid permission issues when creating files
           docker run --user $(id -u):$(id -g) -v $PWD:/opt quay.io/tama5/fauxrest:latest --dest docs data
+
+      # product-merger reports the failure of an individual product and carries on, which
+      # is what keeps one renamed repository from aborting the whole build. The cost is a
+      # run that stays green while the published data quietly stops following the
+      # repositories: both defects found on 2026-10-19 (an owner-wide listing refused by
+      # an organization policy, and a detail query refused for every repository it tried)
+      # were nothing but log lines in a successful run, because the previous values were
+      # kept and the API never looked broken.
+      #
+      # An ERROR deliberately does not fail the run, for the same reason the merger does
+      # not abort: a single renamed repository must not block the deploy of everything
+      # else. It is annotated instead, so the run itself says what was dropped.
+      - name: Report what product-merger dropped
+        if: ${{ !cancelled() }}
+        env:
+          MERGER_LOG: ${{ runner.temp }}/product-merger.log
+        run: |
+          if [ ! -f "$MERGER_LOG" ]; then
+            echo "$MERGER_LOG does not exist, hence product-merger never ran"
+            exit 0
+          fi
+
+          # env_logger writes one bracketed prefix per message, '[<time> ERROR <module>] ',
+          # and indents the continuation of a message that spans several lines. Anchoring
+          # on that prefix therefore counts messages rather than lines.
+          errors=$(grep -cE '^\[[^]]* ERROR ' "$MERGER_LOG" || true)
+          warnings=$(grep -cE '^\[[^]]* WARN ' "$MERGER_LOG" || true)
+
+          # GitHub keeps at most 10 annotations of one level per step, so only the first
+          # few messages are annotated; the Build API step above holds every one of them.
+          annotate() {
+            grep -E "$1" "$MERGER_LOG" | head -5 | while IFS= read -r line; do
+              echo "::warning::${line#*] }"
+            done
+          }
+
+          if [ "$errors" -gt 0 ]; then
+            echo "::warning::product-merger reported $errors error(s): those products keep the values of the previous build instead of following their repositories. See the Build API step."
+            annotate '^\[[^]]* ERROR '
+          fi
+          if [ "$warnings" -gt 0 ]; then
+            echo "::warning::product-merger reported $warnings warning(s). See the Build API step."
+            annotate '^\[[^]]* WARN '
+          fi
+          if [ "$errors" -eq 0 ] && [ "$warnings" -eq 0 ]; then
+            echo "product-merger reported no warning and no error"
+          fi
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -192,6 +247,11 @@ jobs:
   notify-to-homepage:
     runs-on: ubuntu-latest
     needs: build-and-deploy
+    # build-and-deploy runs with always(), hence it succeeds even when update-homebrew-tap
+    # failed. Without always() here, GitHub skips this job over that transitive failure and
+    # the homepage is never told about a deploy that did happen. The deploy itself is still
+    # required: a failed build-and-deploy published nothing to notify about.
+    if: ${{ always() && !cancelled() && needs.build-and-deploy.result == 'success' }}
     steps:
       # Generate a one-time token using the private key
       - name: Generate Token
