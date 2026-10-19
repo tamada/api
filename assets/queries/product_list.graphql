@@ -10,6 +10,7 @@ query ($owner: String!, $endCursor: String) {
                 isPrivate
                 createdAt
                 updatedAt
+                pushedAt
             }
             pageInfo {
                 endCursor

@@ -1,7 +1,7 @@
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-use api::{Error, Result};
+use api::{Cache, Error, Result};
 use clap::{Parser, ValueEnum};
 
 #[derive(ValueEnum, Debug, Clone)]
@@ -30,6 +30,21 @@ struct Opts {
     )]
     base_project_json: bool,
 
+    #[clap(
+        long,
+        help = "reuse the GitHub values of the previous build from the given JSON file or URL, \
+                and fetch only the repositories modified since",
+        value_name = "JSON|URL"
+    )]
+    cache: Option<String>,
+
+    #[clap(
+        long,
+        default_value_t = false,
+        help = "ignore --cache and fetch every product from GitHub"
+    )]
+    no_cache: bool,
+
     #[clap(short, long, default_value = "info", help = "log level", value_name = "LEVEL")]
     level: Level,
 
@@ -38,6 +53,22 @@ struct Opts {
 }
 
 impl Opts {
+    /// Loads the cache of the previous build, if any is given.
+    ///
+    /// A cache that cannot be read only costs a full fetch, hence it is
+    /// reported as a warning instead of an error: the first build has nothing
+    /// published yet to read.
+    fn load_cache(&self) -> Cache {
+        match (&self.cache, self.no_cache) {
+            (Some(_), true) => {
+                log::info!("--no-cache given, hence every product is fetched from GitHub");
+                Cache::empty()
+            }
+            (Some(source), false) => Cache::load_or_empty(source),
+            (None, _) => Cache::empty(),
+        }
+    }
+
     pub fn verify(&self) -> Result<()> {
         let mut errs = Vec::new();
         if self.input != Path::new("-") && !self.input.exists() {
@@ -96,7 +127,7 @@ fn perform(opts: Opts) -> Result<()> {
 
     let text = opts.read_input()?;
     let items = api::product::parse_items(&text, opts.base_project_json)?;
-    let products = api::updater::update_all(items)?;
+    let products = api::updater::update_all(items, &opts.load_cache())?;
     let json = if opts.pretty {
         serde_json::to_string_pretty(&products)
     } else {

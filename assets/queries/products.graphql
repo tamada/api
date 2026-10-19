@@ -8,7 +8,8 @@ query ($name: String!, $owner: String!) {
         homepageUrl
         url
         createdAt
-        lastModifiedAt: pushedAt
+        updatedAt
+        pushedAt
         isArchived
         isPrivate
         visibility
@@ -28,14 +29,16 @@ query ($name: String!, $owner: String!) {
                 color
             }
         }
-        latestRelease {
-            name
-            tagName
-            url
-            description
-            isDraft
-            createdAt
-            publishedAt
+        releases(first: 10, orderBy: {field: CREATED_AT, direction: DESC}) {
+            nodes {
+                name
+                tagName
+                url
+                description
+                isDraft
+                createdAt
+                publishedAt
+            }
         }
         repositoryTopics(first: 5) {
             nodes {

@@ -2,10 +2,12 @@ use std::path::PathBuf;
 
 use thiserror::Error;
 
+pub mod cache;
 pub mod github;
 pub mod product;
 pub mod updater;
 
+pub use cache::Cache;
 pub use product::{BaseProduct, InputItem, License, Link, LinkSpec, Product, Release};
 
 pub type Result<T> = std::result::Result<T, Error>;
