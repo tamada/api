@@ -49,11 +49,15 @@ OUTPUT
    than the repository's `updatedAt`, fetches the repository detail by
    `assets/queries/products.graphql` and builds/updates the product
    information. Otherwise, the entry is kept as-is.
-4. Overwrites the fetched values with the entries of `overrides` (e.g.,
-   `{"overrides": {"url": "https://crates.io/crates/pick-a-boo"}}` replaces
-   the fetched `url`). The `owner` and `name` keys are not overridable since
-   they identify the repository. The `overrides` map itself is kept in the
-   output so that it is re-applied on every refresh.
+4. Overwrites the fetched values with the entries of `overrides`, key by key
+   and as a whole value rather than merged (e.g.,
+   `{"overrides": {"description": "..."}}` replaces the fetched description).
+   The `owner` and `name` keys are not overridable since they identify the
+   repository, and neither is `overrides` itself. Overriding one of the retired
+   keys (`logo`, `url`, `repository`, `sbom`) has no effect either, since they
+   are dropped from the output in favor of `links`; replace `links` instead.
+   The `overrides` map itself is kept in the output so that it is re-applied on
+   every refresh.
 5. Resolves `links` into a single array of `{"label": ..., "url": ...}`,
    which holds every URL of the product. An entry given as an object is kept
    as it is, and an entry given as a bare link type is filled in as follows:
