@@ -4,6 +4,10 @@ This repository provides psuede REST API.
 
 [![Powered by: FauxREST](https://tamada.github.io/fauxrest/powered-by.svg)](https://github.com/tamada/fauxrest)
 
+Operational notes for the maintainer, in Japanese (how a notification from a product
+repository is handled, and how to register a new product):
+[.github/docs/ja/README.md](.github/docs/ja/README.md).
+
 ## Product Merger
 
 The `product-merger` is a CLI tool that reads the base products information from JSON file, and 

@@ -100,18 +100,46 @@ jobs:
         run: |
           rustup update stable
 
+      - name: Generate JSON from Pkl
+        run: |
+          for i in assets/*.pkl ; do
+              pkl eval -f json -o data/$(basename $i .pkl).json $i
+          done
+
+      # The product list is maintained by hand on purpose: a product shows up in this API
+      # only after its entry is committed to assets/base-products.pkl, so that every change
+      # of the product set stays visible in the git history. Hence an unregistered
+      # repository is never registered automatically here; it is only reported as a warning,
+      # so that the notification is not swallowed silently. See .github/docs/ja/README.md.
+      - name: Warn if the notified repository is not registered
+        if: ${{ github.event.inputs.repo != '' }}
+        env:
+          TARGET_REPO: ${{ github.event.inputs.repo }}
+        run: |
+          owner=${TARGET_REPO%%/*}
+          name=${TARGET_REPO##*/}
+          if [ "$owner" = "$TARGET_REPO" ] || [ -z "$owner" ] || [ -z "$name" ]; then
+            echo "::warning::The notified repository '$TARGET_REPO' is not in the <owner>/<name> form"
+            exit 0
+          fi
+
+          if jq -e --arg owner "$owner" --arg name "$name" \
+               'any(.[]; .owner == $owner and .name == $name)' \
+               data/base-products.json > /dev/null ; then
+            echo "$TARGET_REPO is registered in assets/base-products.pkl"
+          else
+            echo "::warning::$TARGET_REPO is not registered in assets/base-products.pkl, hence it does not show up in this API. See .github/docs/ja/README.md to register it."
+          fi
+
       - name: Build API
         env:
           GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         run: |
-          # obtain the UID and GID of the container to avoid permission issues when creating files
-          for i in assets/*.pkl ; do
-              pkl eval -f json -o data/$(basename $i .pkl).json $i
-          done
           cargo build --release
           cargo run -- --pretty --base-project-json data/base-products.json > data/products.json
 
           mkdir docs
+          # obtain the UID and GID of the container to avoid permission issues when creating files
           docker run --user $(id -u):$(id -g) -v $PWD:/opt quay.io/tama5/fauxrest:latest --dest docs data
 
       - name: Setup Pages
