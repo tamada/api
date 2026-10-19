@@ -2,17 +2,18 @@
 
 英語の [README.md](../../../README.md) は `product-merger` の仕様書なので、ここには
 **運用していて迷うところ**だけを書いておく。いまの主題は「プロダクトのリポジトリから
-通知が来たときに何が起きるか」。
+通知が来たときに何が起きるか」と「毎回のビルドで何を GitHub から取り直すのか」。
 
 ## 通知の受け口
 
 各プロダクトのリポジトリからの通知は `repository_dispatch` ではなく
-**`workflow_dispatch`** で受けている（[deploy.yml](../../workflows/deploy.yml)）。入力は2つだけ。
+**`workflow_dispatch`** で受けている（[deploy.yml](../../workflows/deploy.yml)）。入力は3つだけ。
 
 | 入力 | 意味 |
 |---|---|
 | `repo` | 通知元の `owner/name` |
 | `update_brew` | Homebrew formula の更新が必要か |
+| `full_refresh` | キャッシュを無視して全件を GitHub から取り直すか（既定 false） |
 
 通知する側には GitHub App の `CLIENT_ID` と `APP_PRIVATE_KEY` を secret として入れておく
 必要がある。登録は [scripts/install-pipeline-bot-to-repository/run.sh](../../../scripts/install-pipeline-bot-to-repository/run.sh) で行う
@@ -24,7 +25,8 @@
    `update-formula.yaml` を dispatch して、**完了まで待つ**。homebrew-tap 自身もこの API の
    プロダクトなので、formula のコミットが入る前にビルドすると自分の古い情報を公開して
    しまう。
-2. **`build-and-deploy`** — pkl → JSON → `product-merger` → fauxrest → GitHub Pages。
+2. **`build-and-deploy`** — pkl → JSON → 公開中の API をキャッシュとして取得 →
+   `product-merger` → fauxrest → GitHub Pages。
    `always() && !cancelled()` なので、前段がスキップ・失敗しても deploy は走る。
 3. **`notify-to-homepage`** — `tamada/tamada.github.io` の `publish_site.yaml` を dispatch。
 
@@ -33,14 +35,8 @@
 **warning が出るだけで、API には出てこない。** ビルドは成功扱いで終わる。
 
 `repo` の値がビルド内容に影響することはない。`build-and-deploy` は毎回
-`assets/base-products.pkl` の全エントリを対象にする。しかも CI では
-`--base-project-json` を付けて渡すので全エントリが base product として扱われ、
-`product-merger` の差分更新（`last_updated` と `updatedAt` の比較）は効かず、
-**毎回全件を GitHub から取り直している**。`data/*.json` は `.gitignore` の
-`/data/*.json` で無視されていて前回の `products.json` が残らないので、そもそも
-差分の基準がない（`data/` で commit してあるのは手書きの `_config.json` と
-`assets/` のロゴだけ）。`repo` を見ているのは Homebrew tap のジョブと、この
-warning を出すステップだけ。
+`assets/base-products.pkl` の全エントリを対象にする。`repo` を見ているのは
+Homebrew tap のジョブと、この warning を出すステップだけ。
 
 warning は `Warn if the notified repository is not registered` ステップが出す。
 `data/base-products.json` に `owner`/`name` が一致するエントリがあるかを `jq` で見て、
@@ -166,6 +162,101 @@ warning は `Warn if the notified repository is not registered` ステップが�
    - `overrides` は出力にも残るので、毎回の更新で再適用される。
 6. コミットして `main` に push すれば、`push` トリガで再ビルド・再デプロイされる。
 
+## 差分更新のしくみ（公開中の API をキャッシュにしている）
+
+`data/*.json` は `.gitignore` の `/data/*.json` で無視されていて、前回の
+`products.json` はリポジトリに残らない（`data/` で commit してあるのは手書きの
+`_config.json` と `assets/` のロゴだけ）。そこで**前回の出力は公開中の API から
+読み戻している**。
+
+```
+curl -fsS https://tamada.github.io/api/products/index.json -o $RUNNER_TEMP/products-cache.json
+cargo run -- --pretty --base-project-json --cache $RUNNER_TEMP/products-cache.json data/base-products.json
+```
+
+`https://tamada.github.io/api/products/index.json` は `data/products.json` が素通しで
+出ているものなので、そのまま `--cache` に渡せる。`$RUNNER_TEMP` に置くのは、`data/` が
+fauxrest の入力ツリーなので、そこにキャッシュを置くと API に出てしまうから。
+
+**キャッシュが決めるのは「GitHub に聞きに行くかどうか」だけ。** 設定の正は
+`assets/base-products.pkl` のままで、
+
+- プロダクト集合は pkl だけが決める（pkl から消したものはキャッシュに残っていても
+  出力から消える）。新規プロダクトの手動登録というゲートは壊れていない。
+- `links` / `logo` / `overrides` は**毎回 pkl から再適用される**。だから repo が
+  無変更でも、pkl でリンクや overrides を直せば次のビルドで反映される。
+- キャッシュから流用するのは GitHub 由来の値（`description` `releases` `license`
+  `languages` `topics`）だけ。
+- 取得に失敗・404・空（初回）のときは warning を出してフル取得にフォールバックする。
+  ビルドは止まらない。
+
+### 全件取り直したいとき
+
+`workflow_dispatch` の `full_refresh` を true にする（`--no-cache` が渡る）。
+ローカルなら `just base-product-to-product-json --no-cache`。
+
+`releases` は**取り直せば必ず作り直せる値**になっている。GraphQL で最新10件を
+まとめて取り、draft を除いて毎回組み直す（以前は `latestRelease` 1件を前回出力に
+追記して履歴を育てていたので、ビルドを取りこぼすと履歴が永久に欠けた）。
+キャッシュを使っている間は repo が無変更なら以前の1件のままなので、**履歴をまとめて
+埋めたいなら一度 `full_refresh` を走らせる**。
+
+### 比較しているタイムスタンプ
+
+**`updatedAt` と `pushedAt` の新しい方**を両辺で使っている。どちらかが上位ではない。
+
+- `updatedAt` は description や topics の変更も拾う
+- `pushedAt` は default 以外のブランチへの push を拾う
+- `updatedAt` が `pushedAt` より**古い** repo が実在する（`9rules` は
+  `updatedAt` が1年近く前）
+
+片方だけを見ると、保存した側が進んでいる repo が永久に取り直されなくなる。
+なので取得側・detail 側ともに `max(updatedAt, pushedAt)` にしてある。
+出力の `last_updated` もこの値。フェッチできたがタイムスタンプが取れなかった場合は
+`last_updated` を空のままにして、次回取り直させる（以前は `now()` を入れていたので、
+中途半端な値がそのまま固着した）。
+
+### なぜ owner 全件 listing をやめたのか
+
+タイムスタンプは **pkl に書いてある repo だけを名前指定で聞く**（alias で18件を
+1リクエスト、`github::fetch_last_modified`）。以前は `user(login:)` で owner の
+リポジトリ全件を listing していたが、これは捨てた。
+
+理由は `user(login:).repositories` の**デフォルトが「tamada が owner のもの」ではなく
+「tamada が関わっている全リポジトリ」**だったこと。実測:
+
+| 条件 | 件数 |
+|---|---|
+| デフォルト（旧 `product_list.graphql`） | 277 |
+| `ownerAffiliations: [OWNER]` を付ける | 215 |
+
+差の62件は他人や org が owner のもので、`tamadalab` `ksuap` `sagisaka`、そして
+**`TokunagaResearch`** が含まれていた。だから CI で
+
+```
+The 'TokunagaResearch' organization forbids access via a fine-grained personal
+access tokens if the token's lifetime is greater than 366 days.
+```
+
+と言われて**query 自体が丸ごと拒否されていた**（プロダクトは全部 public なのに）。
+拒否されると全件のタイムスタンプが取れず、差分更新は何も効かない。
+
+`ownerAffiliations` で絞っても215件を3ページ取って使うのは18件なので、名前指定が
+素直に上位互換。1ページで済み、他人や org のリポジトリに一切触らない。
+
+### Build API のトークン
+
+名前指定にしたことで public な repo しか読まなくなったので、`secrets.ACCESS_TOKEN`
+（長命の fine-grained PAT）をやめて **`secrets.GITHUB_TOKEN`**（run に自動で付く
+トークン）にした。`permissions` には既に `contents: write` がある。
+
+**ただし `GITHUB_TOKEN` が他リポジトリの public データを GraphQL で読めるかは、CI を
+1回回すまで確定しない。** ローカルでは検証できない。読めなかった場合の次善は、他の
+ジョブで使っている GitHub App のトークン（`create-github-app-token` の
+`repositories:` にプロダクトを列挙する）。まず `GITHUB_TOKEN` で出して、run の結果を
+見てから判断する。失敗しても出力が壊れるわけではなく、タイムスタンプが取れずに
+全件フェッチに戻るだけ（detail query も落ちるなら、キャッシュの値が保持される）。
+
 ## ローカルで確認する
 
 [Justfile](../../../Justfile) にまとまっている。
@@ -177,3 +268,10 @@ just api
 `pkl2json` → `build` → `base-product-to-product-json` → fauxrest の順に走って `docs/` が
 できる。`GH_TOKEN` が必要（`gh auth login` 済みなら不要）。`docs/` は生成物なので
 コミットしない。
+
+`base-product-to-product-json` は CI と同じように公開中の API を `--cache` に渡すので、
+ローカルでも変更のあった repo しか取りに行かない。全件取り直すなら
+
+```sh
+just base-product-to-product-json --no-cache
+```

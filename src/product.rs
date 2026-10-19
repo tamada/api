@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 
 use crate::{Error, Result};
-use crate::github::RepoDetail;
+use crate::github::{ReleaseNode, ReleasesNode, RepoDetail};
 
 /// Keys that are real fields of [`Product`]. They are removed from the
 /// flattened `others` map to avoid duplicated keys in the output JSON.
@@ -104,8 +104,10 @@ pub struct Product {
     /// re-applied every time the product is refreshed.
     #[serde(default, skip_serializing_if = "Map::is_empty")]
     pub overrides: Map<String, Value>,
-    /// `updatedAt` of the repository at the last fetch. Used to decide
-    /// whether the product needs to be refreshed on the next run.
+    /// The time the repository was last modified at the last fetch (the later
+    /// of `updatedAt` and `pushedAt`, see `github::last_modified_of`). Used to
+    /// decide whether the product needs to be refreshed on the next run, so it
+    /// has to stay the very same value the listing reports.
     #[serde(default)]
     pub last_updated: Option<DateTime<Utc>>,
 
@@ -221,15 +223,36 @@ struct FetchedUrls {
 impl FetchedUrls {
     fn of(detail: &RepoDetail) -> Self {
         Self {
-            www: detail
-                .homepage_url
-                .as_ref()
-                .map(|u| u.trim())
-                .filter(|u| !u.is_empty())
-                .map(std::string::ToString::to_string),
+            www: non_blank(detail.homepage_url.as_deref()),
             repository: Some(detail.url.clone()),
         }
     }
+
+    /// Recovers the URLs reported by GitHub from the resolved links of a
+    /// cached product, so that a bare `www` or `repository` keeps resolving to
+    /// the fetched URL while the repository itself is not fetched again. A
+    /// label the configuration gives with its own URL never reaches
+    /// [`derive_link_url`], hence such a link cannot mislead the resolution
+    /// here.
+    fn of_links(links: &[Link]) -> Self {
+        Self {
+            www: url_of(links, "www"),
+            repository: url_of(links, "repository"),
+        }
+    }
+}
+
+fn non_blank(url: Option<&str>) -> Option<String> {
+    url.map(str::trim)
+        .filter(|u| !u.is_empty())
+        .map(std::string::ToString::to_string)
+}
+
+fn url_of(links: &[Link], label: &str) -> Option<String> {
+    links
+        .iter()
+        .find(|link| link.label == label)
+        .and_then(|link| non_blank(link.url.as_deref()))
 }
 
 /// Resolves the bare link types of the input into concrete [`Link`]s, keeping
@@ -391,37 +414,90 @@ pub fn default_sbom(owner: &str, name: &str) -> String {
     )
 }
 
+/// Turns the releases fetched from GitHub into the `releases` of the output,
+/// newest first. The drafts are dropped, and a release without a name of its
+/// own is named after its tag.
+///
+/// The whole list is rebuilt on every fetch: the query asks for a window of
+/// the most recent releases, hence the history is a value that any refetch
+/// reproduces, instead of an accumulation that only the previous output holds
+/// and that a missed build would lose for good.
+fn build_releases(releases: Option<ReleasesNode>) -> Vec<Release> {
+    let mut releases = releases
+        .map(|r| r.nodes)
+        .unwrap_or_default()
+        .into_iter()
+        .filter(|r| !r.is_draft)
+        .map(release_of)
+        .collect::<Vec<_>>();
+    releases.sort_by_key(|r| std::cmp::Reverse(r.release_date));
+    releases
+}
+
+fn release_of(node: ReleaseNode) -> Release {
+    Release {
+        name: match node.name {
+            Some(name) if !name.trim().is_empty() => name,
+            _ => node.tag_name,
+        },
+        release_date: node.published_at.unwrap_or(node.created_at),
+        description: node.description.unwrap_or_default(),
+    }
+}
+
+/// Builds a [`Product`] out of the cached values of a product whose repository
+/// has not been modified since the last fetch, re-applying the configuration
+/// of the base product on top of them.
+///
+/// Only the fields that come from GitHub (the description, the releases, the
+/// license, the languages, the topics, and the last modified time) are reused.
+/// `links`, `logo` and `overrides` are taken from the base product every time,
+/// so that a change in `assets/base-products.pkl` shows up even while the
+/// repository itself stays untouched.
+pub fn build_cached_product(base: &BaseProduct, cached: &Product) -> Product {
+    let fetched = FetchedUrls::of_links(&cached.links);
+    let product = Product {
+        owner: base.owner.clone(),
+        name: base.name.clone(),
+        description: cached.description.clone(),
+        releases: cached.releases.clone(),
+        license: cached.license.clone(),
+        links: resolve_links(
+            &link_specs(&base.logo, &base.links),
+            &base.owner,
+            &base.name,
+            &fetched,
+        ),
+        languages: cached.languages.clone(),
+        topics: cached.topics.clone(),
+        overrides: base.overrides.clone(),
+        last_updated: cached.last_updated,
+        others: HashMap::new(),
+    };
+    apply_overrides(product)
+}
+
 /// Builds a [`Product`] from the repository detail obtained from GitHub,
-/// keeping the information (links, overrides, known releases, and extra keys)
-/// of the previous product or the base product, then applies `overrides`
-/// on the fetched values.
+/// keeping the information (links, overrides, and extra keys) of the previous
+/// product or the base product, then applies `overrides` on the fetched
+/// values.
 pub fn build_product(
     detail: RepoDetail,
     logo: Option<String>,
     overrides: Map<String, Value>,
     others: HashMap<String, Value>,
-    mut releases: Vec<Release>,
     last_updated: Option<DateTime<Utc>>,
     links: &[LinkSpec],
 ) -> Product {
     let fetched = FetchedUrls::of(&detail);
+    // The time reported by the listing is preferred, since it is the value the
+    // next run compares against. It is never replaced by the current time: a
+    // fetch that reports no timestamp has to be retried on the next run,
+    // instead of being kept forever by an up-to-date check against `now`.
+    let last_updated = last_updated.or_else(|| detail.last_modified());
     let owner = detail.owner.login;
     let name = detail.name;
-    if let Some(r) = detail.latest_release && !r.is_draft {
-        let release_name = match r.name {
-            Some(n) if !n.trim().is_empty() => n,
-            _ => r.tag_name,
-        };
-        if !releases.iter().any(|e| e.name == release_name) {
-            releases.push(Release {
-                name: release_name,
-                release_date: r.published_at.unwrap_or(r.created_at),
-                description: r.description.unwrap_or_default(),
-            });
-        }
-    }
-    // releases.sort_by(|a, b| b.release_date.cmp(&a.release_date));
-    releases.sort_by_key(|b| std::cmp::Reverse(b.release_date));    
+    let releases = build_releases(detail.releases);
     let license = detail
         .license_info
         .into_iter()
@@ -439,7 +515,6 @@ pub fn build_product(
         .topics
         .map(|t| t.nodes.into_iter().map(|n| n.topic.name).collect())
         .unwrap_or_default();
-    let last_updated = last_updated.or(detail.last_modified_at).or_else(|| Some(Utc::now()));
     let links = resolve_links(&link_specs(&logo, links), &owner, &name, &fetched);
     let product = Product {
         owner,
@@ -706,7 +781,6 @@ mod tests {
             None,
             Map::new(),
             HashMap::new(),
-            Vec::new(),
             None,
             &links,
         );
@@ -727,7 +801,6 @@ mod tests {
             None,
             Map::new(),
             HashMap::new(),
-            Vec::new(),
             None,
             &links,
         );
@@ -746,11 +819,118 @@ mod tests {
             None,
             Map::new(),
             HashMap::new(),
-            Vec::new(),
             None,
             &links,
         );
         assert_eq!(p.links[0].url.as_deref(), Some("https://crates.io/crates/totebag"));
+    }
+
+    /// Builds a [`RepoDetail`] carrying the given releases and timestamps.
+    fn repo_detail_with(releases: &str, updated_at: &str, pushed_at: &str) -> RepoDetail {
+        let json = format!(
+            r#"{{"name":"totebag","owner":{{"login":"tamada"}},
+                "url":"https://github.com/tamada/totebag",
+                "createdAt":"2024-01-01T00:00:00Z",
+                "updatedAt":"{}","pushedAt":"{}",
+                "releases":{{"nodes":[{}]}}}}"#,
+            updated_at, pushed_at, releases
+        );
+        serde_json::from_str(&json).unwrap()
+    }
+
+    const RELEASE_NODES: &str = r#"
+        {"name":"Release v0.9.0","tagName":"v0.9.0","description":"newer",
+         "isDraft":false,"createdAt":"2026-05-30T00:00:00Z","publishedAt":"2026-06-01T00:00:00Z"},
+        {"name":"","tagName":"v0.8.16","description":null,
+         "isDraft":false,"createdAt":"2026-04-30T00:00:00Z","publishedAt":null},
+        {"name":"Release v0.8.17","tagName":"v0.8.17","description":"a draft",
+         "isDraft":true,"createdAt":"2026-05-01T00:00:00Z","publishedAt":"2026-05-02T00:00:00Z"}"#;
+
+    /// `releases` is rebuilt from the fetched window every time, hence it
+    /// needs no accumulation across the runs.
+    #[test]
+    fn releases_are_derived_from_the_fetch() {
+        let p = build_product(
+            repo_detail_with(RELEASE_NODES, "2026-06-01T00:00:00Z", "2026-06-02T00:00:00Z"),
+            None,
+            Map::new(),
+            HashMap::new(),
+            None,
+            &[],
+        );
+        let releases = p
+            .releases
+            .iter()
+            .map(|r| (r.name.as_str(), r.release_date.to_rfc3339(), r.description.as_str()))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            releases,
+            vec![
+                // newest first, and `publishedAt` is the release date.
+                ("Release v0.9.0", "2026-06-01T00:00:00+00:00".to_string(), "newer"),
+                // a release without a name of its own is named after its tag,
+                // and falls back to `createdAt`. The draft is dropped.
+                ("v0.8.16", "2026-04-30T00:00:00+00:00".to_string(), ""),
+            ]
+        );
+    }
+
+    /// A repository with no release at all gets an empty list, not a product
+    /// carrying over whatever the previous run happened to hold.
+    #[test]
+    fn a_repository_without_releases_gets_an_empty_list() {
+        let p = build_product(
+            repo_detail("https://totebag.example.com"),
+            None,
+            Map::new(),
+            HashMap::new(),
+            None,
+            &[],
+        );
+        assert!(p.releases.is_empty());
+    }
+
+    /// The stored timestamp is the later of `updatedAt` and `pushedAt`, which
+    /// is what the listing of the next run reports.
+    #[test]
+    fn last_updated_follows_the_later_timestamp() {
+        let p = build_product(
+            repo_detail_with("", "2026-06-01T00:00:00Z", "2026-06-02T00:00:00Z"),
+            None,
+            Map::new(),
+            HashMap::new(),
+            None,
+            &[],
+        );
+        assert_eq!(p.last_updated.map(|t| t.to_rfc3339()), Some("2026-06-02T00:00:00+00:00".to_string()));
+
+        // the value given by the listing wins, since it is the one the next
+        // run compares against.
+        let p = build_product(
+            repo_detail_with("", "2026-06-01T00:00:00Z", "2026-06-02T00:00:00Z"),
+            None,
+            Map::new(),
+            HashMap::new(),
+            "2026-06-03T00:00:00Z".parse().ok(),
+            &[],
+        );
+        assert_eq!(p.last_updated.map(|t| t.to_rfc3339()), Some("2026-06-03T00:00:00+00:00".to_string()));
+    }
+
+    /// A fetch that reports no timestamp leaves `last_updated` absent, so that
+    /// the next run fetches the product again. It used to be filled with the
+    /// current time, which made the product look up-to-date forever.
+    #[test]
+    fn a_fetch_without_a_timestamp_leaves_last_updated_absent() {
+        let p = build_product(
+            repo_detail("https://totebag.example.com"),
+            None,
+            Map::new(),
+            HashMap::new(),
+            None,
+            &[],
+        );
+        assert_eq!(p.last_updated, None);
     }
 
     #[test]

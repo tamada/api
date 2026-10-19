@@ -28,6 +28,15 @@ OPTIONs
             specific keys (url, repository, sbom, releases, ...) are parsed
             as the full product information, and the others as the base
             product information (mixed JSON is acceptable).
+        --cache <JSON|URL>     reuse the values of the previous build from the
+            given JSON file, or from the given URL (http:// or https://, read
+            with `curl`), and fetch only the repositories modified since.
+            The published API itself is such a JSON:
+            https://tamada.github.io/api/products/index.json. A cache that
+            cannot be read or parsed is reported as a warning and every
+            product is fetched.
+        --no-cache             ignore --cache and fetch every product from
+            GitHub.
     -l, --level <LEVEL>        set the log level to <LEVEL> (default: info).
     -p, --pretty               print the output in pretty format.
     -h, --help                 print this message.
@@ -41,15 +50,40 @@ OUTPUT
 ### How it works
 
 1. Parses the input JSON as an array of products and/or base products
-   (see `assets/base-products.pkl` for the definitions).
-2. Runs `gh api graphql` with `assets/queries/product_list.graphql`
-   (paginated) once per owner, to obtain the last updated time (`updatedAt`)
-   of all the repositories of the owner.
-3. For each entry, if it is a base product, or its `last_updated` is older
-   than the repository's `updatedAt`, fetches the repository detail by
-   `assets/queries/products.graphql` and builds/updates the product
-   information. Otherwise, the entry is kept as-is.
-4. Overwrites the fetched values with the entries of `overrides`, key by key
+   (see `assets/base-products.pkl` for the definitions). This array alone
+   decides which products the output holds; `--cache` never adds one.
+2. Reads the cache given by `--cache`, if any: the output of a previous build,
+   from which only the values that come from GitHub are reused, and only for
+   the repositories that have not been modified since.
+3. Obtains the last modified time of the repositories of each owner in one
+   `gh api graphql` request, which names the configured repositories (one
+   aliased `repository` field each) instead of listing the repositories of
+   the owner. A `user(login:)` listing would reach well beyond the products:
+   its default affiliations cover every repository the user merely
+   collaborates on, so it also names repositories owned by other people and
+   by organizations, which is enough for an organization policy the token
+   does not satisfy to refuse the whole request. Naming the repositories
+   needs no access beyond the one the detail query below already has.
+
+   The last modified time is the **later of `updatedAt` and `pushedAt`**.
+   Neither is above the other: `updatedAt` also follows the changes that are
+   not a push (the description, the topics), while `pushedAt` is the only one
+   that follows a push to a non-default branch, and a repository may well
+   report an `updatedAt` older than its `pushedAt`. Both this value and the
+   `last_updated` written to the output are the same reduction of the two, so
+   that the two sides of the comparison below are comparable; comparing two
+   different fields would skip a repository forever whenever the stored one
+   happened to run ahead.
+4. For each entry, fetches the repository detail by
+   `assets/queries/products.graphql` and builds the product information,
+   unless the entry has a cached (or, for a full product in the input, its
+   own) `last_updated` that is not older than the time of step 3. In that
+   case the values that come from GitHub (the description, the releases, the
+   license, the languages, the topics) are reused as they are, while `links`,
+   `logo` and `overrides` are applied again from the input, so that a change
+   of the configuration shows up without a fetch. A bare `www` or `repository`
+   keeps the URL GitHub reported by reading it back from the cached links.
+5. Overwrites the fetched values with the entries of `overrides`, key by key
    and as a whole value rather than merged (e.g.,
    `{"overrides": {"description": "..."}}` replaces the fetched description).
    The `owner` and `name` keys are not overridable since they identify the
@@ -58,7 +92,7 @@ OUTPUT
    are dropped from the output in favor of `links`; replace `links` instead.
    The `overrides` map itself is kept in the output so that it is re-applied on
    every refresh.
-5. Resolves `links` into a single array of `{"label": ..., "url": ...}`,
+6. Resolves `links` into a single array of `{"label": ..., "url": ...}`,
    which holds every URL of the product. An entry given as an object is kept
    as it is, and an entry given as a bare link type is filled in as follows:
 
@@ -83,11 +117,22 @@ OUTPUT
    own, hence `url` is optional on a link that has a `ref`; a link carrying
    neither is logged and dropped. Both keys are written only when present, so
    the links that use neither are unchanged.
-6. Prints the resultant array of the full products in JSON. Every URL lives
+7. Prints the resultant array of the full products in JSON. Every URL lives
    in `links`: the output has no `logo`, `url`, `repository`, nor `sbom` key
-   of its own. It contains `last_updated`, therefore the next run updates
-   only the products whose repositories were updated after the previous run.
+   of its own. It contains `last_updated`, therefore the next run given this
+   output as its `--cache` fetches only the products whose repositories were
+   modified since.
+
+`releases` holds the ten most recent releases of the repository, drafts
+excluded, newest first; a release without a name of its own is named after its
+tag. The whole array is rebuilt from the fetch every time, so it is a value
+that any refetch reproduces rather than a history that only the previous
+output holds: a missed build cannot lose a release, and `--no-cache` rebuilds
+every one of them.
 
 The failures on individual products (e.g., renamed or removed repositories)
-are logged and do not abort the whole process; the previous information is
-kept for such products.
+are logged and do not abort the whole process: the cached information is kept
+when a cache holds the product, and the defaults derived from `owner` and
+`name` otherwise. A fetch that reports no timestamp leaves `last_updated`
+absent on purpose, so that the next run fetches the product again instead of
+keeping a partial value forever.

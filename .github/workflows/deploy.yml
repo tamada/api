@@ -14,6 +14,11 @@ on:
         type: boolean
         required: true
         default: false
+      full_refresh:
+        description: "Fetch every product from GitHub, ignoring the published API as the cache?"
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   # homebrew-tap is itself one of the products of this API, so building before its
@@ -131,12 +136,40 @@ jobs:
             echo "::warning::$TARGET_REPO is not registered in assets/base-products.pkl, hence it does not show up in this API. See .github/docs/ja/README.md to register it."
           fi
 
+      # The products of the previous build are read back from the published API, so
+      # that only the repositories modified since are fetched from GitHub again. The
+      # cache decides nothing: the product set and every configured value still come
+      # from assets/base-products.pkl, and an unreachable or empty cache (the first
+      # build, a deploy in flight, a 404) only costs a full fetch. It is written outside
+      # data/, which is the input tree of fauxrest.
+      - name: Fetch the published API as the cache
+        if: ${{ github.event.inputs.full_refresh != 'true' }}
+        env:
+          CACHE_URL: https://tamada.github.io/api/products/index.json
+        run: |
+          curl -fsS "$CACHE_URL" -o "$RUNNER_TEMP/products-cache.json" || {
+            echo "::warning::$CACHE_URL is unavailable, hence every product is fetched from GitHub"
+            echo '[]' > "$RUNNER_TEMP/products-cache.json"
+          }
+
+      # product-merger only reads public repositories, by name, so the token of the run
+      # is enough and no personal access token has to be kept in a secret. Whether
+      # GITHUB_TOKEN may read another repository's public data over GraphQL cannot be
+      # checked locally: if this step reports that it cannot, the GitHub App token the
+      # other jobs generate (create-github-app-token with the products listed under
+      # repositories:) is the next thing to try.
       - name: Build API
         env:
-          GH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FULL_REFRESH: ${{ github.event.inputs.full_refresh }}
         run: |
           cargo build --release
-          cargo run -- --pretty --base-project-json data/base-products.json > data/products.json
+          if [ "$FULL_REFRESH" = "true" ]; then
+            cache_opts="--no-cache"
+          else
+            cache_opts="--cache $RUNNER_TEMP/products-cache.json"
+          fi
+          cargo run -- --pretty --base-project-json $cache_opts data/base-products.json > data/products.json
 
           mkdir docs
           # obtain the UID and GID of the container to avoid permission issues when creating files
