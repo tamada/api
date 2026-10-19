@@ -361,9 +361,10 @@ impl BaseProduct {
 }
 
 /// Overwrites the fields of the given product with the values in its
-/// `overrides` map. The keys identifying the repository ([`PROTECTED_KEYS`])
-/// and the `overrides` key itself are not overridable. When a value does not
-/// fit the field type, a warning is logged and the product is left untouched.
+/// `overrides` map. The keys identifying the repository to be fetched,
+/// `owner` and `name`, and the `overrides` key itself are not overridable.
+/// When a value does not fit the field type, a warning is logged and the
+/// product is left untouched.
 pub fn apply_overrides(product: Product) -> Product {
     if product.overrides.is_empty() {
         return product;
