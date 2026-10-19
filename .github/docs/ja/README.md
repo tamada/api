@@ -250,12 +250,40 @@ access tokens if the token's lifetime is greater than 366 days.
 （長命の fine-grained PAT）をやめて **`secrets.GITHUB_TOKEN`**（run に自動で付く
 トークン）にした。`permissions` には既に `contents: write` がある。
 
-**ただし `GITHUB_TOKEN` が他リポジトリの public データを GraphQL で読めるかは、CI を
-1回回すまで確定しない。** ローカルでは検証できない。読めなかった場合の次善は、他の
-ジョブで使っている GitHub App のトークン（`create-github-app-token` の
-`repositories:` にプロダクトを列挙する）。まず `GITHUB_TOKEN` で出して、run の結果を
-見てから判断する。失敗しても出力が壊れるわけではなく、タイムスタンプが取れずに
-全件フェッチに戻るだけ（detail query も落ちるなら、キャッシュの値が保持される）。
+### query に権限の要るフィールドを混ぜない
+
+`GITHUB_TOKEN` は他リポジトリの public データを読める。**ただし query に権限の要る
+フィールドが1つでも混ざっていると、リクエストが丸ごと落ちる。**
+
+最初にこのトークンで回した run（39188613796）では、タイムスタンプは18件すべて
+取れたのに、変更のあった4件の detail query が全滅した。
+
+```
+ERROR api::updater] tamada/fauxrest: github error: gh: Resource not accessible by integration
+```
+
+原因は `queries/products.graphql` が聞いていた **`collaborators { totalCount }`**。
+これは**リポジトリへの push 権が必要**なフィールドで、public repo でも他人のものは
+読めない。しかも `RepoDetail` が deserialize すらしていない、**使っていないフィールド**
+だった。手元でも再現する:
+
+```sh
+# push 権の無い public repo に collaborators を聞くと FORBIDDEN
+gh api graphql -f query='query{repository(owner:"rust-lang",name:"rust"){collaborators{totalCount}}}'
+```
+
+そこで `products.graphql` を **`RepoDetail` が実際に読むフィールドだけ**に削った
+（`collaborators` のほか `isPrivate` `visibility` `diskUsage` `primaryLanguage`
+`stargazerCount` `forkCount` `watchers`、`languages`/`topics`/`releases` の
+`color` と `url` も未使用だったので一緒に削除）。削った後の query は push 権の無い
+repo でも通る。
+
+**今後 query にフィールドを足すときは、`RepoDetail` が読むものだけにすること。**
+権限の要るものを混ぜると detail query が落ち、全プロダクトがキャッシュの値のまま
+更新されなくなる（出力は壊れないが、気づきにくい）。
+
+なお失敗しても出力が壊れないのは設計どおりで、このときも公開 API は18件のまま、
+4件はキャッシュの値（`description` も `links` も `releases` も）を保持していた。
 
 ## ローカルで確認する
 
