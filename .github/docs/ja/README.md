@@ -91,11 +91,22 @@ warning は `Warn if the notified repository is not registered` ステップが�
    }
    ```
 
-3. リンクの書き方に注意。**ベタ書き（bare）で URL が埋まるのは `www` `repository` `sbom`
-   の3つだけ。** `logo` `docs` `registry` `container` `artifact` はベタ書きすると
-   「ログに出して捨てる」仕様なので、必ず `new Link { label = ...; url = ... }` の形で
-   URL まで書く。`registry` は crates.io や npm、`container` は quay.io など、
-   自分しか知らない情報なのでここは手で埋めるしかない。
+3. リンクは2通りの書き方がある。**`"www"` `"repository"` `"sbom"` の3つは文字列だけ
+   書けばよく、`product-merger` が `url` を組み立てて `Link` に展開する。**
+
+   | 文字列 | 展開される url |
+   |---|---|
+   | `"www"` | リポジトリの `homepageUrl`、空なら `https://<owner>.github.io/<name>` |
+   | `"repository"` | リポジトリの `url`、GitHub に問い合わせていなければ `https://github.com/<owner>/<name>` |
+   | `"sbom"` | `https://api.github.com/repos/<owner>/<name>/dependency-graph/sbom`（GitHub は返さないので常に組み立てる） |
+
+   残りの `logo` `docs` `registry` `container` `artifact` には展開する元が無い。文字列
+   だけで書くと「URL を組み立てられない」と警告を出して捨てられるので、
+   `new Link { label = ...; url = ... }` の形で url まで書く。`registry` は crates.io や
+   npm、`container` は quay.io など、自分しか知らない情報なので手で書くしかない。
+
+   `www` `repository` `sbom` をオブジェクトで書くこともできる。その場合は展開せず、
+   書いた url がそのまま使われる（`homepageUrl` に上書きされない）。
 4. ORAS で引くもの（quay に置いたデータベースなど）は `artifact` に `ref` を書く。
 
    ```pkl
@@ -105,14 +116,54 @@ warning は `Warn if the notified repository is not registered` ステップが�
    }
    ```
 
-   `ref` は `oras pull` / `docker pull` に渡すもの、`url` はブラウザで開くページ。
-   **引くだけで開くページが無いものは `url` を省略できる**（`ref` があれば pkl の
-   制約を通る）。両方無いと pkl の型チェックで落ちる。`container` に quay のページ
-   （`url`）と pull 参照（`ref`）の両方を書くこともできる。`url` も `ref` も、
-   書いたときだけ出力に出るので、使っていないプロダクトの出力は変わらない。
-5. GitHub から取ってきた値を上書きしたいときは `overrides` を使う。`owner` と `name` は
-   リポジトリの同定に使うので上書きできない。`overrides` は出力にも残り、毎回の更新で
-   再適用される。
+   `ref` は `oras pull` / `docker pull` に渡す文字列、`url` はブラウザで開くページ。
+   どちらも省略可で、ただし両方省略すると pkl の型チェックで落ちる。
+
+   **ブラウズできるページがあるなら `url` も書く。** quay なら
+   `https://quay.io/repository/<owner>/<name>` がある。そうしておけば、消費側
+   （tamada.github.io）は「url があればリンクにする」だけで済み、url の無いリンクを
+   特別扱いしなくてよい。pelicode はそうしてある。`url` を省略するのは、置き場所に
+   web ページが無い場合だけ。
+
+   `url` も `ref` も、書いたときだけ出力に出る。だから使っていないプロダクトの出力は
+   変わらない。
+5. GitHub から取ってきた値を上書きしたいときは `overrides` を使う。キー単位で
+   **丸ごと差し替える**（中身をマージするのではない）。
+
+   ```pkl
+   new {
+       owner = "tamada"
+       name = "pelicode"
+       overrides = new Mapping {
+           ["description"] = "GitHub の説明文の代わりにこれを出す"
+           ["languages"] = new Listing { "Rust" }
+       }
+       links = new { "repository" "sbom" }
+   }
+   ```
+
+   `links` を丸ごと置き換えることもできる。この場合 `links` の方に書いた内容は
+   出力に出ない。
+
+   ```pkl
+   overrides = new Mapping {
+       ["links"] = new Listing {
+           new Link {
+               label = "registry"
+               url = "https://crates.io/crates/pelicode"
+           }
+       }
+   }
+   ```
+
+   引っかかりやすい点:
+
+   - `owner` と `name` はリポジトリの同定に使うので上書きできない（警告を出して無視
+     される）。`overrides` 自身も同じ。
+   - **`logo` `url` `repository` `sbom` を上書きしても効かない。** 昔は出力のフィールド
+     だったが今は `links` に移っていて、出力から捨てられる（`src/product.rs` の
+     `RETIRED_KEYS`）。これらを変えたいときは上の例のように `links` を置き換える。
+   - `overrides` は出力にも残るので、毎回の更新で再適用される。
 6. コミットして `main` に push すれば、`push` トリガで再ビルド・再デプロイされる。
 
 ## ローカルで確認する
