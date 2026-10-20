@@ -175,7 +175,7 @@ jobs:
           # of individual products into annotations, and echoed here afterwards so that
           # this step still reads as the whole output of the build.
           status=0
-          cargo run -- --pretty --base-project-json $cache_opts data/base-products.json \
+          cargo run --release -- --pretty --base-project-json $cache_opts data/base-products.json \
             > data/products.json 2> "$MERGER_LOG" || status=$?
           cat "$MERGER_LOG" >&2
           [ "$status" -eq 0 ] || exit "$status"

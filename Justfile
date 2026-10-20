@@ -14,7 +14,7 @@ build:
 cache_url := "https://tamada.github.io/api/products/index.json"
 
 base-product-to-product-json *OPTS: pkl2json build
-    cargo run -- --pretty --base-project-json --cache {{cache_url}} {{OPTS}} data/base-products.json > data/products.json
+    cargo run --release -- --pretty --base-project-json --cache {{cache_url}} {{OPTS}} data/base-products.json > data/products.json
 
 api: base-product-to-product-json
     docker run -v $PWD:/opt quay.io/tama5/fauxrest:latest --dest docs data
